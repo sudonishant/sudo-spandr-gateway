@@ -1,0 +1,2 @@
+requests>=2.31.0
+pymilter>=1.0.5
