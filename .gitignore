@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.pytest_cache/
+quarantine_vault/
+test_vault/

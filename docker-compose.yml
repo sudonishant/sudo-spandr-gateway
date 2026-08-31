@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  cybersquad-esg:
+    build: .
+    container_name: cybersquad-esg-gateway
+    restart: unless-stopped
+    ports:
+      - "10025:10025"  # Inbound SMTP Proxy
+      - "8893:8893"    # Postfix Milter Protocol Socket
+      - "8002:8002"    # Web SOC Dashboard & API
+    volumes:
+      - ./quarantine_vault:/app/quarantine_vault
+    environment:
+      - CS_GW_SMTP_LISTEN_HOST=0.0.0.0
+      - CS_GW_SMTP_LISTEN_PORT=10025
+      - CS_GW_MILTER_LISTEN_HOST=0.0.0.0
+      - CS_GW_MILTER_LISTEN_PORT=8893
+      - CS_GW_API_LISTEN_HOST=0.0.0.0
+      - CS_GW_API_LISTEN_PORT=8002
+      - CS_GW_CLEAN_THRESHOLD=40
+      - CS_GW_SUSPICIOUS_THRESHOLD=75
+      - CS_GW_REJECT_THRESHOLD=75
+      - CS_GW_AUTO_QUARANTINE_HIGH_RISK=True
+      - CS_GW_WEB_BACKEND_URL=http://cybersquad-web:8001/api/gateway-milter-check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
