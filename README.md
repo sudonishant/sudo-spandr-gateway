@@ -41,6 +41,47 @@
 
 ---
 
+## 🚀 Quick Start (Kaise Start Karein - 3 Simple Steps)
+
+### Step 1: Install Dependencies
+```bash
+cd "/home/nee/Desktop/sih email/cybersquad-gateway-master"
+pip install -r requirements.txt
+```
+
+### Step 2: Start All Gateway Services (1-Click)
+```bash
+./start_gateway.sh
+# or run via python
+python3 cli.py start
+```
+*This starts:*
+- **SMTP Transparent Proxy:** `0.0.0.0:10025`
+- **Postfix Milter Wire Socket:** `0.0.0.0:8893`
+- **Web SOC Dashboard:** `http://localhost:8002`
+- **Prometheus Metrics:** `http://localhost:8002/metrics`
+
+### Step 3: Open the Web SOC Dashboard
+Open in your browser: 👉 **`http://localhost:8002`**
+
+> 📖 **Complete Step-by-Step Manual:** Read [HOW_TO_USE.md](HOW_TO_USE.md) for full screenshots descriptions, testing scenarios, and Postfix production setup!
+
+---
+
+## 💻 CLI Commands Cheat Sheet
+
+| Action | Command |
+|---|---|
+| **Start Gateway** | `python3 cli.py start` (or `./start_gateway.sh`) |
+| **Run Attack Simulation** | `python3 cli.py simulate` |
+| **Send Test SMTP Email** | `python3 cli.py test-smtp --sender attacker@b0b-security-update.in --subject "URGENT: Wire Transfer"` |
+| **List Quarantined Cases** | `python3 cli.py quarantine-list` |
+| **Inject Synthetic Traffic** | `python3 simulate_traffic.py --count 2 --delay 0.5` |
+| **Run Automated Tests** | `python3 test_gateway_suite.py` |
+| **Start Milter Daemon Only** | `python3 milter_daemon.py --serve --port 8893` |
+
+---
+
 ## ✨ Key Capabilities & Modern Architecture
 
 1. **Dual-Mode Interception Support**:
@@ -67,48 +108,6 @@
    - Server-Sent Events (SSE) and WebSocket live telemetry streaming.
 6. **SIEM & Webhook Alerting**:
    - Automated notification dispatching to Slack Block Kit, Discord, or SOC SIEM endpoints on high-threat detections.
-
----
-
-## 🚀 Quick Start & Installation
-
-### 1. Install Dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Launch Unified ESG Services:
-```bash
-# Starts SMTP Proxy (:10025), Milter (:8893), and SOC Dashboard (:8002)
-python3 cli.py start
-```
-
-### 3. Open Web SOC Dashboard:
-Open your browser and navigate to: **`http://localhost:8002`**
-
----
-
-## 💻 CLI Commands & Testing
-
-```bash
-# 1. Run multi-vector attack & policy simulation
-python3 cli.py simulate
-
-# 2. Start standalone Milter daemon
-python3 milter_daemon.py --serve --port 8893
-
-# 3. Send a test email through the SMTP Gateway
-python3 cli.py test-smtp --sender attacker@b0b-security-update.in --subject "URGENT: Wire Transfer"
-
-# 4. List all quarantined items in vault
-python3 cli.py quarantine-list
-
-# 5. Inject synthetic traffic stream into the gateway
-python3 simulate_traffic.py --count 2 --delay 0.5
-
-# 6. Run automated test suite
-python3 test_gateway_suite.py
-```
 
 ---
 
