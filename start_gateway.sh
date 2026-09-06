@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Cyber Squad ESG - Quick Start Runner (SIH 2026 #26106)
+# SUDO SPANDR ESG - Quick Start Runner (SIH 2026 #26106)
 # ==============================================================================
 
 set -e
@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "======================================================================"
-echo "🛡️  STARTING CYBER SQUAD ENTERPRISE EMAIL SECURITY GATEWAY (ESG v4.0)"
+echo "🛡️  STARTING SUDO SPANDR ENTERPRISE EMAIL SECURITY GATEWAY (ESG v4.0)"
 echo "======================================================================"
 
 # Check Python3

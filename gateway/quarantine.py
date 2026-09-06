@@ -1,5 +1,5 @@
 """
-Cryptographic Evidence Quarantine Vault for Cyber Squad ESG.
+Cryptographic Evidence Quarantine Vault for SUDO SPANDR ESG.
 Persists intercepted high-threat emails with SHA-256 integrity sealing and Section 63 BSA 2023 compliance.
 """
 
@@ -201,8 +201,8 @@ class QuarantineVault:
                 "tamper_detected": not is_valid,
                 "hmac_seal": case_data.get("hmac_seal")
             },
-            "declaration": "I hereby certify that this electronic output was produced by the Cyber Squad ESG Mail Flow Interceptor during ordinary operation, and cryptographic hash integrity verifies zero alteration.",
-            "issued_by": "Cyber Squad Security Operations Center (SIH #26106)"
+            "declaration": "I hereby certify that this electronic output was produced by the SUDO SPANDR ESG Mail Flow Interceptor during ordinary operation, and cryptographic hash integrity verifies zero alteration.",
+            "issued_by": "SUDO SPANDR Security Operations Center (SIH #26106)"
         }
 
 

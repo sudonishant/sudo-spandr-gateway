@@ -1,5 +1,5 @@
 """
-High-Throughput Postfix / Sendmail Milter Protocol Server for Cyber Squad ESG.
+High-Throughput Postfix / Sendmail Milter Protocol Server for SUDO SPANDR ESG.
 Implements the binary Milter wire protocol over TCP and Unix Domain sockets with zero C-dependencies.
 """
 
@@ -17,7 +17,7 @@ from gateway.quarantine import QuarantineVault, vault
 from gateway.smtp_proxy import metrics
 from gateway.webhook import async_dispatch_webhook
 
-logger = logging.getLogger("cybersquad.gateway.milter")
+logger = logging.getLogger("sudospandr.gateway.milter")
 
 # Milter Command Constants (Sendmail / Postfix wire protocol)
 SMFIC_OPTNEG = b"O"
@@ -204,7 +204,7 @@ class MilterProtocolSession:
                             client_ip=self.client_ip
                         )
                         # Milter quarantine action
-                        quar_reason = f"Quarantined by Cyber Squad ESG: Score {inspection.threat_score}/100\x00".encode("utf-8")
+                        quar_reason = f"Quarantined by SUDO SPANDR ESG: Score {inspection.threat_score}/100\x00".encode("utf-8")
                         await self._send_packet(SMFIR_QUARANTINE, quar_reason)
                         await self._send_packet(SMFIS_CONTINUE)
 
@@ -275,10 +275,10 @@ class AsyncMilterServer:
             self.host,
             self.port
         )
-        logger.info(f"[Cyber Squad Milter] Listening on TCP {self.host}:{self.port} (Postfix: inet:localhost:{self.port})")
+        logger.info(f"[SUDO SPANDR Milter] Listening on TCP {self.host}:{self.port} (Postfix: inet:localhost:{self.port})")
 
     async def stop(self):
         if self.tcp_server:
             self.tcp_server.close()
             await self.tcp_server.wait_closed()
-            logger.info("[Cyber Squad Milter] TCP server stopped.")
+            logger.info("[SUDO SPANDR Milter] TCP server stopped.")

@@ -1,5 +1,5 @@
 """
-FastAPI Control Plane, REST APIs, Prometheus Metrics & SSE Live Feed for Cyber Squad ESG.
+FastAPI Control Plane, REST APIs, Prometheus Metrics & SSE Live Feed for SUDO SPANDR ESG.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from gateway.web_ui import DASHBOARD_HTML
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Cyber Squad Enterprise Mail Flow Security Gateway (ESG) Control Plane",
+    description="SUDO SPANDR Enterprise Mail Flow Security Gateway (ESG) Control Plane",
     version=settings.VERSION
 )
 
@@ -52,7 +52,7 @@ class QuarantineReleaseRequest(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def get_dashboard():
-    """Serves the Embedded Cyber SOC Web Dashboard."""
+    """Serves the Embedded SUDO SPANDR SOC Web Dashboard."""
     return HTMLResponse(content=DASHBOARD_HTML, status_code=200)
 
 
@@ -81,29 +81,29 @@ async def prometheus_metrics() -> PlainTextResponse:
     """Exports metrics in standard Prometheus exposition format."""
     stats = metrics.get_stats()
     lines = [
-        "# HELP cybersquad_esg_scanned_total Total number of inbound emails scanned",
-        "# TYPE cybersquad_esg_scanned_total counter",
-        f"cybersquad_esg_scanned_total {stats['total_scanned']}",
+        "# HELP sudospandr_esg_scanned_total Total number of inbound emails scanned",
+        "# TYPE sudospandr_esg_scanned_total counter",
+        f"sudospandr_esg_scanned_total {stats['total_scanned']}",
         "",
-        "# HELP cybersquad_esg_clean_total Total number of clean emails accepted",
-        "# TYPE cybersquad_esg_clean_total counter",
-        f"cybersquad_esg_clean_total {stats['clean_count']}",
+        "# HELP sudospandr_esg_clean_total Total number of clean emails accepted",
+        "# TYPE sudospandr_esg_clean_total counter",
+        f"sudospandr_esg_clean_total {stats['clean_count']}",
         "",
-        "# HELP cybersquad_esg_tagged_total Total number of suspicious emails tagged",
-        "# TYPE cybersquad_esg_tagged_total counter",
-        f"cybersquad_esg_tagged_total {stats['tagged_count']}",
+        "# HELP sudospandr_esg_tagged_total Total number of suspicious emails tagged",
+        "# TYPE sudospandr_esg_tagged_total counter",
+        f"sudospandr_esg_tagged_total {stats['tagged_count']}",
         "",
-        "# HELP cybersquad_esg_quarantined_total Total number of emails sealed in quarantine vault",
-        "# TYPE cybersquad_esg_quarantined_total counter",
-        f"cybersquad_esg_quarantined_total {stats['quarantined_count']}",
+        "# HELP sudospandr_esg_quarantined_total Total number of emails sealed in quarantine vault",
+        "# TYPE sudospandr_esg_quarantined_total counter",
+        f"sudospandr_esg_quarantined_total {stats['quarantined_count']}",
         "",
-        "# HELP cybersquad_esg_rejected_total Total number of malicious emails rejected with SMTP 550",
-        "# TYPE cybersquad_esg_rejected_total counter",
-        f"cybersquad_esg_rejected_total {stats['rejected_count']}",
+        "# HELP sudospandr_esg_rejected_total Total number of malicious emails rejected with SMTP 550",
+        "# TYPE sudospandr_esg_rejected_total counter",
+        f"sudospandr_esg_rejected_total {stats['rejected_count']}",
         "",
-        "# HELP cybersquad_esg_latency_ms_avg Average inspection latency in milliseconds",
-        "# TYPE cybersquad_esg_latency_ms_avg gauge",
-        f"cybersquad_esg_latency_ms_avg {stats['avg_latency_ms']}",
+        "# HELP sudospandr_esg_latency_ms_avg Average inspection latency in milliseconds",
+        "# TYPE sudospandr_esg_latency_ms_avg gauge",
+        f"sudospandr_esg_latency_ms_avg {stats['avg_latency_ms']}",
         ""
     ]
     return PlainTextResponse("\n".join(lines), media_type="text/plain; version=0.0.4")

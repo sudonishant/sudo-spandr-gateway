@@ -1,5 +1,5 @@
 """
-High-Performance Heuristic Threat & Pattern Engine for Cyber Squad Gateway (ESG).
+High-Performance Heuristic Threat & Pattern Engine for SUDO SPANDR Gateway (ESG).
 Evaluates zero-day BEC, Quishing, Typosquatting, Dangerous MIME attachments, and Phishing URLs in <5ms.
 """
 

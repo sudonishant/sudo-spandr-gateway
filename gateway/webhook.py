@@ -1,5 +1,5 @@
 """
-SIEM & SOC Alert Webhook Dispatcher for Cyber Squad ESG.
+SIEM & SOC Alert Webhook Dispatcher for SUDO SPANDR ESG.
 Sends real-time high-fidelity threat alerts to SOC webhooks, Slack, Discord, or syslog endpoints.
 """
 
@@ -12,7 +12,7 @@ import requests
 
 from gateway.config import settings
 
-logger = logging.getLogger("cybersquad.gateway.webhook")
+logger = logging.getLogger("sudospandr.gateway.webhook")
 
 
 def format_slack_alert(inspection: Dict[str, Any]) -> Dict[str, Any]:
@@ -27,7 +27,7 @@ def format_slack_alert(inspection: Dict[str, Any]) -> Dict[str, Any]:
     finding_lines = "\n".join(f"• *{f.get('title')}*: {f.get('description')}" for f in findings[:3])
 
     return {
-        "text": f"🚨 [Cyber Squad ESG] High-Risk Email Intercepted: {case_id} (Score: {score}/100)",
+        "text": f"🚨 [SUDO SPANDR ESG] High-Risk Email Intercepted: {case_id} (Score: {score}/100)",
         "blocks": [
             {
                 "type": "header",
@@ -62,7 +62,7 @@ def dispatch_webhook(inspection_result_dict: Dict[str, Any], webhook_url: Option
 
     try:
         payload = {
-            "source": "Cyber Squad Enterprise ESG v4.0",
+            "source": "SUDO SPANDR Enterprise ESG v4.0",
             "event": "EMAIL_INTERCEPTED",
             "timestamp": inspection_result_dict.get("generated_at"),
             "data": inspection_result_dict

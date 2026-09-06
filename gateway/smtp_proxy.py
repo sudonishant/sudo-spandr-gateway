@@ -1,5 +1,5 @@
 """
-Asynchronous RFC 5321 Transparent SMTP Proxy / MTA Mail Flow Interceptor for Cyber Squad ESG.
+Asynchronous RFC 5321 Transparent SMTP Proxy / MTA Mail Flow Interceptor for SUDO SPANDR ESG.
 Built on Python asyncio for ultra-high throughput without external C-extensions.
 """
 
@@ -20,7 +20,7 @@ from gateway.engine.inspector import GatewayInspector, InspectionResult
 from gateway.quarantine import QuarantineVault, vault
 from gateway.webhook import async_dispatch_webhook
 
-logger = logging.getLogger("cybersquad.gateway.smtp")
+logger = logging.getLogger("sudospandr.gateway.smtp")
 
 
 class GatewayMetrics:
@@ -153,11 +153,11 @@ class SMTPProxySession:
                 arg = line.split(" ", 1)[1] if " " in line else ""
 
                 if cmd == "QUIT":
-                    await self.send_line("221 2.0.0 Cyber Squad ESG closing connection. Bye.")
+                    await self.send_line("221 2.0.0 SUDO SPANDR ESG closing connection. Bye.")
                     break
                 elif cmd in ["HELO", "EHLO"]:
                     self.helo_name = arg.strip()
-                    await self.send_line("250-cybersquad-esg.local Hello")
+                    await self.send_line("250-sudospandr-esg.local Hello")
                     await self.send_line("250-SIZE 26214400")
                     await self.send_line("250-8BITMIME")
                     await self.send_line("250 ENHANCEDSTATUSCODES")
@@ -304,10 +304,10 @@ class AsyncSMTPProxyServer:
             self.port
         )
         addrs = ", ".join(str(sock.getsockname()) for sock in self.server.sockets)
-        logger.info(f"[Cyber Squad SMTP Gateway] Serving on {addrs}")
+        logger.info(f"[SUDO SPANDR SMTP Gateway] Serving on {addrs}")
 
     async def stop(self):
         if self.server:
             self.server.close()
             await self.server.wait_closed()
-            logger.info("[Cyber Squad SMTP Gateway] Stopped.")
+            logger.info("[SUDO SPANDR SMTP Gateway] Stopped.")

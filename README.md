@@ -1,19 +1,19 @@
-# Cyber Squad Enterprise Email Security Gateway (ESG v4.0)
+# SUDO SPANDR Enterprise Email Security Gateway (ESG v4.0)
 ### Next-Gen Inbound Mail Flow Interceptor & Postfix Milter Security Daemon
-**SIH 2026 Problem Statement #26106 | Team Cyber Squad**
+**SIH 2026 Problem Statement #26106 | Team SUDO SPANDR**
 
 ---
 
 ## 🛡️ Executive Summary
 
-**Cyber Squad ESG v4.0** is an enterprise-grade Secure Email Gateway designed for real-time inbound mail flow interception, cognitive BEC / CEO-fraud detection, typosquatted brand defense (targeting Bank of Baroda, SBI, etc.), Quishing (QR-phishing) prevention, weaponized attachment disassembly, and cryptographic evidence preservation under **Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023**.
+**SUDO SPANDR ESG v4.0** is an enterprise-grade Secure Email Gateway designed for real-time inbound mail flow interception, cognitive BEC / CEO-fraud detection, typosquatted brand defense (targeting Bank of Baroda, SBI, etc.), Quishing (QR-phishing) prevention, weaponized attachment disassembly, and cryptographic evidence preservation under **Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023**.
 
 ```
                            [ Inbound Mail Stream ]
                                       │
                                       ▼
                ┌──────────────────────────────────────────────┐
-               │    Cyber Squad ESG Interceptor (v4.0.0)      │
+               │    SUDO SPANDR ESG Interceptor (v4.0.0)      │
                │  • SMTP Proxy (:10025)   • Milter (:8893)    │
                └──────────────────────┬───────────────────────┘
                                       │
@@ -45,7 +45,7 @@
 
 ### Step 1: Install Dependencies
 ```bash
-cd "/home/nee/Desktop/sih email/cybersquad-gateway-master"
+cd "/home/nee/Desktop/sih email/sudospandr-gateway-master"
 pip install -r requirements.txt
 ```
 
@@ -113,7 +113,7 @@ Open in your browser: 👉 **`http://localhost:8002`**
 
 ## ⚙️ Postfix MTA Integration (`main.cf`)
 
-To connect Cyber Squad ESG Milter directly into your production or staging Postfix mail server:
+To connect SUDO SPANDR ESG Milter directly into your production or staging Postfix mail server:
 
 ```ini
 # /etc/postfix/main.cf
@@ -165,4 +165,4 @@ docker-compose logs -f
 
 ## ⚖️ Compliance & Legal Admissibility
 
-All intercepted high-threat payloads preserved by Cyber Squad ESG conform to **Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023** governing the legal admissibility of electronic evidence in Indian courts of law, with cryptographic SHA-256 timestamping and HMAC tamper-evident proof seals.
+All intercepted high-threat payloads preserved by SUDO SPANDR ESG conform to **Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023** governing the legal admissibility of electronic evidence in Indian courts of law, with cryptographic SHA-256 timestamping and HMAC tamper-evident proof seals.

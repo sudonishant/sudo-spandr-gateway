@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cyber Squad Enterprise ESG - Command Line Interface (CLI)
+SUDO SPANDR Enterprise ESG - Command Line Interface (CLI)
 SIH 2026 Problem Statement #26106
 """
 
@@ -77,7 +77,7 @@ async def run_unified_gateway(host: str, smtp_port: int, milter_port: int, api_p
         f"• [bold magenta]FastAPI & Web SOC Dashboard:[/bold magenta] [white]http://{host if host != '0.0.0.0' else 'localhost'}:{api_port}[/white]\n"
         f"• [bold blue]Prometheus Metrics Endpoint:[/bold blue]  [white]http://{host if host != '0.0.0.0' else 'localhost'}:{api_port}/metrics[/white]\n"
         f"• [bold purple]Quarantine Storage Vault:[/bold purple]    [white]{settings.QUARANTINE_DIR}[/white]",
-        title="[bold white]CYBER SQUAD ESG CONTROL PLANE[/bold white]",
+        title="[bold white]SUDO SPANDR ESG CONTROL PLANE[/bold white]",
         border_style="cyan"
     ))
 
@@ -225,7 +225,7 @@ def cmd_quarantine_list():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cyber Squad Enterprise ESG v4.0 CLI")
+    parser = argparse.ArgumentParser(description="SUDO SPANDR Enterprise ESG v4.0 CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
     # start

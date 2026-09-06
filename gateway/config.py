@@ -1,5 +1,5 @@
 """
-Configuration module for Cyber Squad Enterprise Email Security Gateway (ESG).
+Configuration module for SUDO SPANDR Enterprise Email Security Gateway (ESG).
 Uses Pydantic Settings with environment variable and .env file overrides.
 """
 
@@ -19,9 +19,9 @@ class GatewaySettings(BaseSettings):
     )
 
     # Core metadata
-    PROJECT_NAME: str = "Cyber Squad Secure Email Gateway (ESG)"
+    PROJECT_NAME: str = "SUDO SPANDR Secure Email Gateway (ESG)"
     VERSION: str = "4.0.0"
-    TEAM_NAME: str = "Cyber Squad - SIH 2026 #26106"
+    TEAM_NAME: str = "SUDO SPANDR - SIH 2026 #26106"
     ENVIRONMENT: str = "production"
     LOG_LEVEL: str = "INFO"
 
@@ -32,13 +32,13 @@ class GatewaySettings(BaseSettings):
     SMTP_RELAY_HOST: str = "127.0.0.1"
     SMTP_RELAY_PORT: int = 2525
     SMTP_MAX_SIZE_BYTES: int = 25 * 1024 * 1024  # 25 MB
-    SMTP_BANNER: str = "220 cybersquad-esg.local Cyber Squad ESG Ready (RFC 5321 / SIH #26106)"
+    SMTP_BANNER: str = "220 sudo-spandr-esg.local SUDO SPANDR ESG Ready (RFC 5321 / SIH #26106)"
 
     # Postfix Milter Protocol Configuration
     MILTER_ENABLED: bool = True
     MILTER_LISTEN_HOST: str = "0.0.0.0"
     MILTER_LISTEN_PORT: int = 8893
-    MILTER_SOCKET_PATH: str = "/tmp/cybersquad-milter.sock"
+    MILTER_SOCKET_PATH: str = "/tmp/sudo-spandr-milter.sock"
 
     # Admin Control Plane & Web SOC Dashboard
     API_ENABLED: bool = True
@@ -54,7 +54,7 @@ class GatewaySettings(BaseSettings):
 
     # Quarantine Vault Storage
     QUARANTINE_DIR: Path = Field(default_factory=lambda: BASE_DIR / "quarantine_vault")
-    QUARANTINE_SECRET: str = "cybersquad-section63-evidence-seal-2026"
+    QUARANTINE_SECRET: str = "sudo-spandr-section63-evidence-seal-2026"
 
     # Upstream Web Core Integration
     WEB_BACKEND_URL: str = "http://localhost:8001/api/gateway-milter-check"

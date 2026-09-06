@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cyber Squad Mail Flow Gateway Agent (Postfix Milter / Daemon)
+SUDO SPANDR Mail Flow Gateway Agent (Postfix Milter / Daemon)
 SIH 2026 Problem Statement #26106
 
 Enterprise Next-Gen Mail Flow Interceptor & Milter Protocol Server.
@@ -19,7 +19,7 @@ from gateway.engine.inspector import GatewayInspector, InspectionResult
 from gateway.milter_server import AsyncMilterServer
 
 
-class CyberSquadMilterDaemon:
+class SUDO SPANDRMilterDaemon:
     """
     High-Throughput Policy Enforcement Milter Agent.
     Evaluates inbound email headers and MIME body streams in real-time.
@@ -28,8 +28,8 @@ class CyberSquadMilterDaemon:
     def __init__(self, backend_url: Optional[str] = None):
         self.inspector = GatewayInspector()
         self.backend_url = backend_url or settings.WEB_BACKEND_URL
-        print(f"[Cyber Squad Gateway] Initialized Next-Gen Milter Daemon (v{settings.VERSION})")
-        print(f"[Cyber Squad Gateway] Heuristics: Active | DNS Auth: Active | Backend Fallback: {self.backend_url}")
+        print(f"[SUDO SPANDR Gateway] Initialized Next-Gen Milter Daemon (v{settings.VERSION})")
+        print(f"[SUDO SPANDR Gateway] Heuristics: Active | DNS Auth: Active | Backend Fallback: {self.backend_url}")
 
     def process_incoming_mail(
         self,
@@ -96,7 +96,7 @@ async def run_milter_service(host: str, port: int):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cyber Squad Enterprise Milter Daemon (SIH #26106)")
+    parser = argparse.ArgumentParser(description="SUDO SPANDR Enterprise Milter Daemon (SIH #26106)")
     parser.add_argument("--serve", action="store_true", help="Start the Async Milter Wire Protocol Server")
     parser.add_argument("--host", default=settings.MILTER_LISTEN_HOST, help="Bind host for Milter TCP server")
     parser.add_argument("--port", type=int, default=settings.MILTER_LISTEN_PORT, help="Bind port for Milter TCP server")
@@ -111,7 +111,7 @@ def main():
             print("\n[*] Milter Daemon stopped.")
     else:
         # Default: Run Interception Simulation
-        daemon = CyberSquadMilterDaemon()
+        daemon = SUDO SPANDRMilterDaemon()
         print("\n" + "="*70)
         print("⚡ RUNNING ZERO-DAY INTERCEPTION TEST SIMULATION")
         print("="*70)

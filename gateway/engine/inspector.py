@@ -1,5 +1,5 @@
 """
-Unified Gateway Threat & Policy Inspector for Cyber Squad ESG.
+Unified Gateway Threat & Policy Inspector for SUDO SPANDR ESG.
 Orchestrates heuristics, DNS authentication, MIME analysis, and optional Web Backend delegation.
 """
 
@@ -162,7 +162,7 @@ class GatewayInspector:
                             severity="HIGH" if rule_score >= 70 else "MEDIUM",
                             score_impact=20,
                             title=str(r),
-                            description=f"Identified by Cyber Squad Web Analysis Core: {r}",
+                            description=f"Identified by SUDO SPANDR Web Analysis Core: {r}",
                             evidence=f"Signal: {r}"
                         ))
                     evaluated_by = "hybrid_web_core"
@@ -198,7 +198,7 @@ class GatewayInspector:
             verdict = "MALICIOUS"
             policy_action = "REJECT" if not self.settings.AUTO_QUARANTINE_HIGH_RISK else "QUARANTINE"
             postfix_code = "Milter.REJECT"
-            smtp_reply = f"550 5.7.1 Message rejected by Cyber Squad ESG: Threat score {composite_score}/100 [{dominant_category}] (Ref: {case_id})"
+            smtp_reply = f"550 5.7.1 Message rejected by SUDO SPANDR ESG: Threat score {composite_score}/100 [{dominant_category}] (Ref: {case_id})"
         elif composite_score >= self.settings.CLEAN_THRESHOLD:
             verdict = "SUSPICIOUS"
             policy_action = "TAG_SUBJECT"
@@ -212,15 +212,15 @@ class GatewayInspector:
 
         # Headers to Inject
         headers_to_add = {
-            "X-CyberSquad-ESG-Version": self.settings.VERSION,
-            "X-CyberSquad-Case-ID": case_id,
-            "X-CyberSquad-Threat-Score": str(composite_score),
-            "X-CyberSquad-Verdict": verdict,
-            "X-CyberSquad-Category": dominant_category,
-            "X-CyberSquad-SPF": auth_res.spf_status,
-            "X-CyberSquad-DKIM": auth_res.dkim_status,
-            "X-CyberSquad-DMARC": auth_res.dmarc_status,
-            "X-CyberSquad-Evaluator": evaluated_by
+            "X-SUDO SPANDR-ESG-Version": self.settings.VERSION,
+            "X-SUDO SPANDR-Case-ID": case_id,
+            "X-SUDO SPANDR-Threat-Score": str(composite_score),
+            "X-SUDO SPANDR-Verdict": verdict,
+            "X-SUDO SPANDR-Category": dominant_category,
+            "X-SUDO SPANDR-SPF": auth_res.spf_status,
+            "X-SUDO SPANDR-DKIM": auth_res.dkim_status,
+            "X-SUDO SPANDR-DMARC": auth_res.dmarc_status,
+            "X-SUDO SPANDR-Evaluator": evaluated_by
         }
 
         # Subject Modification for Suspicious Verdict

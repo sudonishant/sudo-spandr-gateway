@@ -1,5 +1,5 @@
 """
-Automated Test Suite for Cyber Squad Enterprise ESG v4.0
+Automated Test Suite for SUDO SPANDR Enterprise ESG v4.0
 Tests Heuristic Engine, Live Auth, Quarantine Vault, Section 63 BSA Integrity, FastAPI, and SMTP Proxy.
 """
 
@@ -22,7 +22,7 @@ from gateway.quarantine import QuarantineVault
 from gateway.smtp_proxy import AsyncSMTPProxyServer, metrics
 
 
-class TestCyberSquadESG(unittest.TestCase):
+class TestSUDO SPANDRESG(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -153,8 +153,8 @@ class TestCyberSquadESG(unittest.TestCase):
         # Prometheus Metrics
         res = self.client.get("/metrics")
         self.assertEqual(res.status_code, 200)
-        self.assertIn("cybersquad_esg_scanned_total", res.text)
-        self.assertIn("cybersquad_esg_quarantined_total", res.text)
+        self.assertIn("sudospandr_esg_scanned_total", res.text)
+        self.assertIn("sudospandr_esg_quarantined_total", res.text)
 
         # Inspect REST API
         payload = {
@@ -173,7 +173,7 @@ class TestCyberSquadESG(unittest.TestCase):
         # Dashboard HTML
         res = self.client.get("/")
         self.assertEqual(res.status_code, 200)
-        self.assertIn("CYBER SQUAD", res.text)
+        self.assertIn("SUDO SPANDR", res.text)
 
 
 if __name__ == "__main__":

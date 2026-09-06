@@ -1,5 +1,5 @@
 """
-Live DNS Email Authentication Engine (SPF, DKIM, DMARC) for Cyber Squad ESG.
+Live DNS Email Authentication Engine (SPF, DKIM, DMARC) for SUDO SPANDR ESG.
 Performs RFC-compliant verification on inbound SMTP client connections and headers.
 """
 

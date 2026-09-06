@@ -1,6 +1,6 @@
-# 📘 Cyber Squad Enterprise ESG - Complete User & Operation Guide
+# 📘 SUDO SPANDR Enterprise ESG - Complete User & Operation Guide
 ### Kaise Use Karein / Step-by-Step Practical Manual
-**SIH 2026 Problem Statement #26106 | Team Cyber Squad**
+**SIH 2026 Problem Statement #26106 | Team SUDO SPANDR**
 
 ---
 
@@ -28,7 +28,7 @@
 ### Installation Steps:
 ```bash
 # Navigate to the gateway repository
-cd "/home/nee/Desktop/sih email/cybersquad-gateway-master"
+cd "/home/nee/Desktop/sih email/sudospandr-gateway-master"
 
 # (Optional) Create & activate a virtual environment
 python3 -m venv venv
@@ -242,7 +242,7 @@ python3 milter_daemon.py --serve --port 8893 &
 
 ## 8. Programmatic Python API Usage
 
-Aap apne custom Python applications me directly Cyber Squad Gateway ke engine ko import karke use kar sakte hain:
+Aap apne custom Python applications me directly SUDO SPANDR Gateway ke engine ko import karke use kar sakte hain:
 
 ```python
 from gateway.engine.inspector import GatewayInspector
@@ -304,4 +304,4 @@ python3 test_gateway_suite.py
 **Ans:** Prometheus config me target add karein `localhost:8002` path `/metrics`.
 
 ---
-*Developed with pride by **Team Cyber Squad** for **Smart India Hackathon 2026 (Problem Statement #26106)**.*
+*Developed with pride by **Team SUDO SPANDR** for **Smart India Hackathon 2026 (Problem Statement #26106)**.*

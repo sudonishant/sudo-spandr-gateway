@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Real-time Inbound Mail Flow Traffic Generator for Cyber Squad ESG.
+Real-time Inbound Mail Flow Traffic Generator for SUDO SPANDR ESG.
 Sends diverse realistic email streams (BEC, Spoofs, Malware, Quishing, Legitimate)
 directly through the live SMTP Gateway (Port 10025) or Milter Socket to populate SOC metrics.
 """
@@ -104,7 +104,7 @@ def send_traffic(host: str = "127.0.0.1", port: int = 10025, count: int = 1, del
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Cyber Squad ESG Synthetic Traffic Injector")
+    parser = argparse.ArgumentParser(description="SUDO SPANDR ESG Synthetic Traffic Injector")
     parser.add_argument("--host", default="127.0.0.1", help="SMTP Gateway host")
     parser.add_argument("--port", type=int, default=10025, help="SMTP Gateway port")
     parser.add_argument("--count", type=int, default=1, help="Number of batches")

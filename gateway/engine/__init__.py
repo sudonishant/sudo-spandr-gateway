@@ -1,5 +1,5 @@
 """
-Cyber Squad Gateway Threat Engine Module.
+SUDO SPANDR Gateway Threat Engine Module.
 """
 from gateway.engine.rules import evaluate_rules, RuleFinding
 from gateway.engine.authenticator import evaluate_authentication, AuthResult

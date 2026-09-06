@@ -1,5 +1,5 @@
 """
-Embedded Dark-Theme SOC Web Dashboard for Cyber Squad ESG.
+Embedded Dark-Theme SOC Web Dashboard for SUDO SPANDR ESG.
 Single-page reactive cybersecurity interface with real-time SSE stream, Quarantine manager, and Attack Simulator.
 """
 
@@ -8,7 +8,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyber Squad ESG - Enterprise Mail Flow Gateway</title>
+  <title>SUDO SPANDR ESG - Enterprise Mail Flow Gateway</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -46,7 +46,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <div>
         <div class="flex items-center gap-2.5">
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            CYBER SQUAD <span class="text-cyan-400 font-mono text-xs px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800">ESG v4.0</span>
+            SUDO SPANDR <span class="text-cyan-400 font-mono text-xs px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800">ESG v4.0</span>
           </h1>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> LIVE INTERCEPTOR
@@ -343,7 +343,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
             <i class="fa-solid fa-server text-cyan-400"></i> Postfix `main.cf` Milter Setup
           </h3>
           <p class="text-xs text-slate-400">Add the following directives to your Postfix mail server configuration:</p>
-          <pre class="bg-cyber-900 border border-cyber-600 rounded-lg p-4 font-mono text-xs text-cyan-300 overflow-x-auto custom-scroll"># /etc/postfix/main.cf - Cyber Squad ESG Milter
+          <pre class="bg-cyber-900 border border-cyber-600 rounded-lg p-4 font-mono text-xs text-cyan-300 overflow-x-auto custom-scroll"># /etc/postfix/main.cf - SUDO SPANDR ESG Milter
 smtpd_milters = inet:127.0.0.1:8893
 non_smtpd_milters = inet:127.0.0.1:8893
 milter_default_action = accept
@@ -357,8 +357,8 @@ milter_mail_macros = i {auth_type} {auth_authen}</pre>
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-arrow-right-arrow-left text-indigo-400"></i> SMTP Proxy Relaying Setup
           </h3>
-          <p class="text-xs text-slate-400">Configure your Edge Router / MX record to point to Cyber Squad ESG:</p>
-          <pre class="bg-cyber-900 border border-cyber-600 rounded-lg p-4 font-mono text-xs text-indigo-300 overflow-x-auto custom-scroll"># Inbound MX points to Cyber Squad ESG (Port 10025 or 25)
+          <p class="text-xs text-slate-400">Configure your Edge Router / MX record to point to SUDO SPANDR ESG:</p>
+          <pre class="bg-cyber-900 border border-cyber-600 rounded-lg p-4 font-mono text-xs text-indigo-300 overflow-x-auto custom-scroll"># Inbound MX points to SUDO SPANDR ESG (Port 10025 or 25)
 # ESG inspects traffic -> relays clean/tagged mail to internal MTA:
 CS_GW_SMTP_LISTEN_PORT=10025
 CS_GW_SMTP_RELAY_HOST=127.0.0.1
