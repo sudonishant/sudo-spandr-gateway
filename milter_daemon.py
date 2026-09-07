@@ -19,7 +19,7 @@ from gateway.engine.inspector import GatewayInspector, InspectionResult
 from gateway.milter_server import AsyncMilterServer
 
 
-class SUDO SPANDRMilterDaemon:
+class SudoSpandrMilterDaemon:
     """
     High-Throughput Policy Enforcement Milter Agent.
     Evaluates inbound email headers and MIME body streams in real-time.
@@ -83,6 +83,10 @@ class SUDO SPANDRMilterDaemon:
             }
 
 
+# Backward-compatible alias
+CyberSquadMilterDaemon = SudoSpandrMilterDaemon
+
+
 async def run_milter_service(host: str, port: int):
     server = AsyncMilterServer(host=host, port=port)
     await server.start()
@@ -111,7 +115,7 @@ def main():
             print("\n[*] Milter Daemon stopped.")
     else:
         # Default: Run Interception Simulation
-        daemon = SUDO SPANDRMilterDaemon()
+        daemon = SudoSpandrMilterDaemon()
         print("\n" + "="*70)
         print("⚡ RUNNING ZERO-DAY INTERCEPTION TEST SIMULATION")
         print("="*70)

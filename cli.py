@@ -35,15 +35,15 @@ console = Console()
 
 def print_banner():
     banner = Text(r"""
-   ______      __             _____                     __   ___________ _____ 
-  / ____/_  __/ /_  ___  _____/ ___/____ ___  ______ _/ /  / ____/ ___// ___/ 
- / /   / / / / __ \/ _ \/ ___/\__ \/ __ `/ / / / __ `/ /  / __/  \__ \/ / __  
-/ /___/ /_/ / /_/ /  __/ /   ___/ / /_/ / /_/ / /_/ / /  / /___ ___/ / /_/ /  
-\____/\__, /_.___/\___/_/   /____/\__, /\__,_/\__,_/_/  /_____//____/\____/   
-     /____/                         /_/         v4.0 (SIH PS #26106)          
+   _____ __  ______  ____     _____ ____  ___    _   ______  ____     ___________ _____ 
+  / ___// / / / __ \/ __ \   / ___// __ \/   |  / | / / __ \/ __ \   / ____/ ___// ___/ 
+  \__ \/ / / / / / / / / /   \__ \/ /_/ / /| | /  |/ / / / / /_/ /  / __/  \__ \/ / __  
+ ___/ / /_/ / /_/ / /_/ /   ___/ / ____/ ___ |/ /|  / /_/ / _, _/  / /___ ___/ / /_/ /  
+/____/\____/_____/\____/   /____/_/   /_/  |_/_/ |_/_____/_/ |_|  /_____//____/\____/   
+                                                           v4.0 (SIH PS #26106)
     """, style="bold cyan")
     console.print(banner)
-    console.print("[dim]Enterprise Mail Flow Interceptor & Postfix Milter Security Gateway[/dim]\n")
+    console.print("[dim]SUDO SPANDR Enterprise Mail Flow Interceptor & Postfix Milter Security Gateway[/dim]\n")
 
 
 async def run_unified_gateway(host: str, smtp_port: int, milter_port: int, api_port: int):

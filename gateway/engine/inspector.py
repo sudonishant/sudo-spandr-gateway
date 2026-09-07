@@ -128,7 +128,7 @@ class GatewayInspector:
             canonical = f"{sender}|{recipient}|{subject}|{body}".encode("utf-8")
             evidence_sha256 = hashlib.sha256(canonical).hexdigest()
 
-        case_id = f"CS-ESG-{evidence_sha256[:10].upper()}"
+        case_id = f"SPANDR-ESG-{evidence_sha256[:10].upper()}"
 
         evaluated_by = "local_engine"
         rule_score = 0
@@ -212,15 +212,15 @@ class GatewayInspector:
 
         # Headers to Inject
         headers_to_add = {
-            "X-SUDO SPANDR-ESG-Version": self.settings.VERSION,
-            "X-SUDO SPANDR-Case-ID": case_id,
-            "X-SUDO SPANDR-Threat-Score": str(composite_score),
-            "X-SUDO SPANDR-Verdict": verdict,
-            "X-SUDO SPANDR-Category": dominant_category,
-            "X-SUDO SPANDR-SPF": auth_res.spf_status,
-            "X-SUDO SPANDR-DKIM": auth_res.dkim_status,
-            "X-SUDO SPANDR-DMARC": auth_res.dmarc_status,
-            "X-SUDO SPANDR-Evaluator": evaluated_by
+            "X-SudoSpandr-ESG-Version": self.settings.VERSION,
+            "X-SudoSpandr-Case-ID": case_id,
+            "X-SudoSpandr-Threat-Score": str(composite_score),
+            "X-SudoSpandr-Verdict": verdict,
+            "X-SudoSpandr-Category": dominant_category,
+            "X-SudoSpandr-SPF": auth_res.spf_status,
+            "X-SudoSpandr-DKIM": auth_res.dkim_status,
+            "X-SudoSpandr-DMARC": auth_res.dmarc_status,
+            "X-SudoSpandr-Evaluator": evaluated_by
         }
 
         # Subject Modification for Suspicious Verdict

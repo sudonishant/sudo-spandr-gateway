@@ -22,7 +22,7 @@ from gateway.quarantine import QuarantineVault
 from gateway.smtp_proxy import AsyncSMTPProxyServer, metrics
 
 
-class TestSUDO SPANDRESG(unittest.TestCase):
+class TestSudoSpandrESG(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
