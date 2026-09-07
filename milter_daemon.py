@@ -70,7 +70,8 @@ class SudoSpandrMilterDaemon:
                 "modified_subject": res.modified_subject,
                 "evidence_sha256": res.evidence_sha256,
                 "scan_time_ms": res.scan_time_ms,
-                "evaluated_by": res.evaluated_by
+                "evaluated_by": res.evaluated_by,
+                "autopsy_dossier": res.autopsy_dossier
             }
         except Exception as e:
             print(f"[Milter Daemon] Error during mail inspection: {e}. Falling back to default CONTINUE.")

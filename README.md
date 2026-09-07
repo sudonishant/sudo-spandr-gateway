@@ -97,16 +97,22 @@ Open in your browser: 👉 **`http://localhost:8002`**
    - Real-time DNS SPF record evaluation against sender IP.
    - DKIM signature parsing and alignment checks.
    - RFC 7489 DMARC policy enforcement.
-4. **Section 63 BSA 2023 Evidence Quarantine Vault**:
+4. **Deep Email Forensic Autopsy & CDR Engine (Postmortem Lab)**:
+   - **Multi-Hop Transport Relay Reconstruction**: Dissects `Received:` headers to map the exact message travel path, delta-t transmission latencies, and flags Tor Exit Nodes / Bulletproof C2 infrastructure.
+   - **MITRE ATT&CK Enterprise Matrix**: Automatically correlates heuristics to adversary techniques (`T1656` BEC Impersonation, `T1584.004` Typosquatting, `T1566.001/.002` Spearphishing, `T1204.001` Quishing, `T1036.007` Double Extension).
+   - **Cognitive Linguistics & Social Engineering Profiler**: Quantifies psychological manipulation levers (Fear, Financial Urgency, Executive Pressure, Channel Isolation).
+   - **Content Disarm & Reconstruction (CDR)**: Safely neutralizes VBA macros, polyglot files, and double extensions.
+5. **Section 63 BSA 2023 Evidence Quarantine Vault**:
    - Stores raw intercepted RFC5322 EML messages with HMAC-SHA256 integrity seals.
-   - One-click Section 63 Electronic Evidence Certificate generation.
+   - One-click Section 63 Electronic Evidence Certificate generation for court admissibility.
    - Administrative release, raw EML export, and deletion capabilities.
-5. **Real-time SOC Web Dashboard & Prometheus Metrics**:
+6. **Real-time SOC Web Dashboard & Prometheus Metrics**:
    - Embedded single-page Dark-Theme SOC Web interface on `http://localhost:8002/`.
+   - Dedicated **Forensic Autopsy Laboratory** tab for deep mail dissection.
    - Live attack map, stats counters, Quarantine Manager, and Attack Simulator.
    - Native `/metrics` endpoint for Prometheus / Grafana scraping.
    - Server-Sent Events (SSE) and WebSocket live telemetry streaming.
-6. **SIEM & Webhook Alerting**:
+7. **SIEM & Webhook Alerting**:
    - Automated notification dispatching to Slack Block Kit, Discord, or SOC SIEM endpoints on high-threat detections.
 
 ---
@@ -137,17 +143,29 @@ sudo postfix reload
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/` | `GET` | Embedded Cyber SOC Web Dashboard |
+| `/` | `GET` | Embedded Cyber SOC Web Dashboard & Autopsy Lab |
 | `/health` | `GET` | Health check & active socket status |
 | `/metrics` | `GET` | Prometheus exposition format metrics |
 | `/api/v1/stats` | `GET` | Operational throughput and threat statistics |
-| `/api/v1/inspect` | `POST` | Inspect raw email payload (JSON) |
+| `/api/v1/inspect` | `POST` | Inspect raw email payload (JSON + Autopsy Dossier) |
+| `/api/v1/autopsy/{id}` | `GET` | Retrieve surgical forensic autopsy dossier (Multi-Hop, MITRE, CDR) |
+| `/api/v1/autopsy/dissect-raw` | `POST` | Base64 raw EML autopsy dissection |
 | `/api/v1/quarantine` | `GET` | List quarantined forensic records |
 | `/api/v1/quarantine/{id}` | `GET` | Detailed case metadata |
 | `/api/v1/quarantine/{id}/raw` | `GET` | Download raw RFC5322 EML file |
-| `/api/v1/quarantine/{id}/bsa-certificate` | `GET` | Section 63 BSA 2023 certificate |
+| `/api/v1/quarantine/{id}/bsa-certificate` | `GET` | Section 63 BSA 2023 court certificate |
 | `/api/v1/quarantine/{id}/release` | `POST` | Release quarantined email to recipient |
 | `/api/v1/live-feed` | `GET` | Server-Sent Events (SSE) live SOC stream |
+
+---
+
+## 🔬 CLI Autopsy Command
+To surgically dissect an intercepted email from the command line:
+```bash
+python3 cli.py autopsy SPANDR-ESG-AE65045ADD
+# or inspect any .eml file directly:
+python3 cli.py autopsy /path/to/suspect_email.eml
+```
 
 ---
 

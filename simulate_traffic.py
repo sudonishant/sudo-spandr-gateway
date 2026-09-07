@@ -14,20 +14,26 @@ from email.mime.application import MIMEApplication
 
 TRAFFIC_SAMPLES = [
     {
-        "name": "BEC Executive Wire Fraud ($25.6M)",
+        "name": "BEC Executive Wire Fraud ($25.6M) via Bulletproof Russian Relay",
         "from": "executive-desk@b0b-finance-update.in",
         "to": "treasury@corporate-client.com",
         "subject": "URGENT: Confidential Wire Transfer Needed Immediately ($25.6M)",
         "body": "Please wire $25.6M immediately to our offshore supplier account. Strictly confidential, do not disclose to others. Sent from my iPhone in a board meeting.",
-        "headers": {"Reply-To": "drop-box@attacker-route.ru"}
+        "headers": {
+            "Received": "from bp-relay.c2-host.ru ([194.26.29.112]) by mail.corporate-client.com (Postfix, TLSv1.3) with ESMTPS id 3R9L8K; Mon, 07 Sep 2026 15:10:00 +0000",
+            "Reply-To": "drop-box@attacker-route.ru"
+        }
     },
     {
-        "name": "Bank of Baroda Phishing Account Notice",
+        "name": "Bank of Baroda Phishing Account Notice via German Tor Exit Node",
         "from": "security-alert@b0b-bank-security.in",
         "to": "user@corporate-client.com",
         "subject": "Action Required: Bank of Baroda Account Suspension Notice",
         "body": "Your corporate account will be suspended within 24 hours. Sign in at http://192.168.1.10/login/bob-secure to verify identity.",
-        "headers": {"Received-SPF": "fail"}
+        "headers": {
+            "Received": "from tor-exit.zwiebelfreunde.de ([185.220.101.5]) by mail.corporate-client.com (Postfix, TLSv1.3) with ESMTPS id 8Q2X1M; Mon, 07 Sep 2026 15:12:00 +0000",
+            "Received-SPF": "fail"
+        }
     },
     {
         "name": "Quishing 2FA Security Update",
@@ -35,16 +41,31 @@ TRAFFIC_SAMPLES = [
         "to": "staff@corporate-client.com",
         "subject": "Microsoft Authenticator 2FA Security Update Required",
         "body": "Please scan the below QR code with your phone authenticator app.\n\n<img src='data:image/png;base64,...' />",
-        "headers": {}
+        "headers": {
+            "Received": "from mx01.cloud-tenant-update.com ([199.249.230.70]) by mail.corporate-client.com with ESMTP id 9A1B2C; Mon, 07 Sep 2026 15:13:00 +0000"
+        }
     },
     {
-        "name": "Double Extension Malware Delivery (.pdf.exe)",
+        "name": "Weaponized Double Extension Malware Delivery (.pdf.exe)",
         "from": "invoice-dept@vendor-billing-desk.net",
         "to": "accounts@corporate-client.com",
         "subject": "Overdue Invoice #INV-2026-9901 - Payment Pending",
         "body": "Please find attached the signed receipt and overdue invoice. Remit payment today.",
         "attachment_name": "Invoice_Overdue_Statement.pdf.exe",
-        "headers": {}
+        "headers": {
+            "Received": "from outbound.vendor-billing-desk.net ([91.240.118.172]) by mail.corporate-client.com with ESMTPS id 7Z8Y9X; Mon, 07 Sep 2026 15:14:00 +0000"
+        }
+    },
+    {
+        "name": "LockBit 4.0 Weaponized VBA Macro Document (.docm)",
+        "from": "procurement@contract-defense.org",
+        "to": "cfo@corporate-client.com",
+        "subject": "PRIORITY: Revised Defense Contract Addendum #8821",
+        "body": "Please review the attached contract addendum. Enable macros when prompted to load automated audit signatures.",
+        "attachment_name": "Defense_Addendum_Rev4.docm",
+        "headers": {
+            "Received": "from mail.contract-defense.org ([185.220.101.6]) by mail.corporate-client.com with ESMTPS id 5F4E3D; Mon, 07 Sep 2026 15:15:00 +0000"
+        }
     },
     {
         "name": "Clean Project Weekly Sync",

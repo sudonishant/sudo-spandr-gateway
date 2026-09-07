@@ -42,6 +42,12 @@ class EmailInspectRequest(BaseModel):
     subject: str = Field(default="", max_length=500)
     body: str = Field(default="", max_length=2_000_000)
     headers: Optional[Dict[str, str]] = None
+    attachments: Optional[List[Dict[str, Any]]] = None
+    client_ip: Optional[str] = "127.0.0.1"
+
+
+class RawEmlInspectRequest(BaseModel):
+    raw_eml_base64: str = Field(description="Base64 encoded RFC5322 EML message")
     client_ip: Optional[str] = "127.0.0.1"
 
 
@@ -126,6 +132,7 @@ async def inspect_email(req: EmailInspectRequest) -> Dict[str, Any]:
         subject=req.subject.strip(),
         body=req.body,
         headers=req.headers or {},
+        attachments=req.attachments or [],
         client_ip=req.client_ip or "127.0.0.1"
     )
 
@@ -145,10 +152,78 @@ async def inspect_email(req: EmailInspectRequest) -> Dict[str, Any]:
             category=res.category,
             findings=res.findings,
             auth_summary=res.auth_summary,
-            client_ip=req.client_ip or "127.0.0.1"
+            client_ip=req.client_ip or "127.0.0.1",
+            autopsy_dossier=res.autopsy_dossier
         )
 
     return asdict(res)
+
+
+@app.post("/api/v1/autopsy/dissect-raw")
+async def dissect_raw_eml(req: RawEmlInspectRequest) -> Dict[str, Any]:
+    """
+    Accepts a base64-encoded raw RFC5322 .EML file, executes full dissection,
+    and returns comprehensive autopsy diagnostics.
+    """
+    import base64
+    try:
+        raw_bytes = base64.b64decode(req.raw_eml_base64)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid base64 payload: {e}")
+
+    res = inspector.inspect(
+        sender="",
+        recipient="",
+        subject="",
+        body="",
+        client_ip=req.client_ip or "127.0.0.1",
+        raw_eml_bytes=raw_bytes
+    )
+    return asdict(res)
+
+
+# --- AUTOPSY & FORENSIC DOSSIER APIS ---
+
+@app.get("/api/v1/autopsy/{case_id}")
+async def get_autopsy_dossier(case_id: str):
+    """
+    Retrieves the complete deep forensic autopsy dossier for a quarantined or inspected case.
+    Includes Multi-Hop Relays, MITRE ATT&CK Mapping, Cognitive NLP, and CDR Disarm reports.
+    """
+    case = vault.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found in evidence vault.")
+
+    dossier = case.get("autopsy_dossier")
+    if not dossier:
+        # If autopsy dossier wasn't persisted directly, generate on-the-fly from raw EML
+        raw_eml = vault.get_raw_eml(case_id)
+        if raw_eml:
+            p_sender, p_rcpt, p_subj, p_body, p_hdrs, p_atts = inspector.parse_raw_eml(raw_eml)
+            from gateway.engine.autopsy import autopsy_engine
+            dossier_obj = autopsy_engine.generate_full_autopsy(
+                sender=p_sender or case.get("sender", ""),
+                recipient=p_rcpt or case.get("recipient", ""),
+                subject=p_subj or case.get("subject", ""),
+                body=p_body,
+                headers=p_hdrs,
+                findings=case.get("findings", []),
+                threat_score=case.get("threat_score", 0),
+                dominant_category=case.get("category", "General"),
+                raw_eml_bytes=raw_eml,
+                attachments=p_atts
+            )
+            dossier = asdict(dossier_obj)
+        else:
+            raise HTTPException(status_code=404, detail=f"No forensic evidence available for case {case_id}.")
+
+    return {
+        "status": "success",
+        "case_id": case_id,
+        "threat_score": case.get("threat_score"),
+        "category": case.get("category"),
+        "autopsy_dossier": dossier
+    }
 
 
 # --- QUARANTINE VAULT APIS ---

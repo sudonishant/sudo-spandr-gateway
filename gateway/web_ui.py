@@ -134,6 +134,9 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <button onclick="switchTab('stream')" id="tab-btn-stream" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2">
         <i class="fa-solid fa-tower-broadcast"></i> Live Interception Feed
       </button>
+      <button onclick="switchTab('autopsy')" id="tab-btn-autopsy" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
+        <i class="fa-solid fa-microscope text-cyan-400"></i> Forensic Autopsy Lab
+      </button>
       <button onclick="switchTab('quarantine')" id="tab-btn-quarantine" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-vault"></i> Evidence Quarantine Vault
       </button>
@@ -362,7 +365,152 @@ milter_mail_macros = i {auth_type} {auth_authen}</pre>
 # ESG inspects traffic -> relays clean/tagged mail to internal MTA:
 CS_GW_SMTP_LISTEN_PORT=10025
 CS_GW_SMTP_RELAY_HOST=127.0.0.1
-CS_GW_SMTP_RELAY_PORT=2525</pre>
+    <!-- TAB: FORENSIC AUTOPSY LAB -->
+    <div id="tab-autopsy" class="hidden space-y-6">
+      <!-- Search and Inspect Bar -->
+      <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-400 text-lg">
+            <i class="fa-solid fa-microscope"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              DEEP FORENSIC AUTOPSY LABORATORY &bull; SECTION 63 BSA
+            </h3>
+            <p class="text-xs text-slate-400">Surgical email postmortem: Multi-Hop Relay reconstruction, MITRE ATT&CK, Cognitive NLP, and CDR Disarm</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-1 max-w-md">
+          <input id="autopsy-search-input" type="text" placeholder="Enter Case ID (e.g. SPANDR-ESG-47B61E9FCE)" class="flex-1 bg-cyber-900 border border-cyber-600 rounded-lg px-3 py-2 text-xs font-mono text-white focus:border-cyan-400 focus:outline-none">
+          <button onclick="fetchAutopsyDossier()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold text-xs rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-dna"></i> Dissect
+          </button>
+        </div>
+      </div>
+
+      <!-- Autopsy Dossier Container -->
+      <div id="autopsy-dossier-empty" class="bg-cyber-800 border border-cyber-600 rounded-xl p-16 text-center text-slate-500 font-mono text-xs">
+        <i class="fa-solid fa-user-secret text-4xl mb-3 block text-slate-600"></i>
+        Enter a Case ID from the Live Feed or Quarantine Vault to launch a surgical forensic autopsy.
+      </div>
+
+      <div id="autopsy-dossier-view" class="hidden space-y-6">
+        <!-- Top Metadata & Section 63 Ledger Card -->
+        <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-cyber-900 p-3.5 rounded-lg border border-cyber-700">
+            <span class="text-[10px] text-slate-400 block uppercase font-mono">Dossier Reference</span>
+            <span id="auto-ref" class="text-sm font-bold font-mono text-cyan-400 truncate block">--</span>
+          </div>
+          <div class="bg-cyber-900 p-3.5 rounded-lg border border-cyber-700">
+            <span class="text-[10px] text-slate-400 block uppercase font-mono">Originating Node IP</span>
+            <span id="auto-ip" class="text-sm font-bold font-mono text-rose-400 block">--</span>
+          </div>
+          <div class="bg-cyber-900 p-3.5 rounded-lg border border-cyber-700">
+            <span class="text-[10px] text-slate-400 block uppercase font-mono">Origin Location</span>
+            <span id="auto-loc" class="text-sm font-bold text-white block">--</span>
+          </div>
+          <div class="bg-cyber-900 p-3.5 rounded-lg border border-cyber-700 flex flex-col justify-center">
+            <button onclick="viewCurrentBsaCert()" class="w-full py-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800 hover:bg-emerald-900 rounded font-semibold text-xs transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-stamp"></i> BSA Sec 63 Court Cert
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Multi-Hop Relay Reconstruction -->
+        <div class="bg-cyber-800 border border-cyber-600 rounded-xl overflow-hidden shadow-xl">
+          <div class="p-4 border-b border-cyber-600 bg-cyber-900/60 flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-route"></i> 1. Multi-Hop Transport Relay Reconstruction &amp; Delta-T Timing
+            </h4>
+            <span class="text-[11px] text-slate-400">Reverse Chronological &bull; RFC 5322 Inbound Path</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-cyber-900/80 text-slate-400 uppercase font-mono text-[11px] border-b border-cyber-600">
+                <tr>
+                  <th class="py-2.5 px-4">Hop</th>
+                  <th class="py-2.5 px-4">From Host</th>
+                  <th class="py-2.5 px-4">By Host</th>
+                  <th class="py-2.5 px-4">Relay IP</th>
+                  <th class="py-2.5 px-4">Protocol &amp; TLS</th>
+                  <th class="py-2.5 px-4">Hop Delay (&Delta;t)</th>
+                  <th class="py-2.5 px-4">Threat Intel</th>
+                </tr>
+              </thead>
+              <tbody id="auto-hops-tbody" class="divide-y divide-cyber-700/60 font-mono text-[11px]">
+                <!-- Hops rendered here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. MITRE ATT&CK Matrix & Cognitive Linguistics (2 Columns) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- MITRE Matrix -->
+          <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2 font-mono border-b border-cyber-600 pb-2">
+              <i class="fa-solid fa-shield-virus"></i> 2. MITRE ATT&amp;CK Enterprise Matrix Mapping
+            </h4>
+            <div id="auto-mitre-container" class="space-y-2 max-h-80 overflow-y-auto custom-scroll pr-1">
+              <!-- MITRE Cards rendered here -->
+            </div>
+          </div>
+
+          <!-- Cognitive Linguistics -->
+          <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2 font-mono border-b border-cyber-600 pb-2">
+              <i class="fa-solid fa-brain"></i> 3. Cognitive Linguistics &amp; Social Engineering Dissection
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div class="bg-cyber-900 p-2.5 rounded border border-cyber-700 text-center">
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Fear / Penalty</span>
+                <span id="cog-fear" class="text-lg font-bold font-mono text-rose-400">0</span>
+              </div>
+              <div class="bg-cyber-900 p-2.5 rounded border border-cyber-700 text-center">
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Financial Urgency</span>
+                <span id="cog-fin" class="text-lg font-bold font-mono text-amber-400">0</span>
+              </div>
+              <div class="bg-cyber-900 p-2.5 rounded border border-cyber-700 text-center">
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Authority</span>
+                <span id="cog-auth" class="text-lg font-bold font-mono text-cyan-400">0</span>
+              </div>
+              <div class="bg-cyber-900 p-2.5 rounded border border-cyber-700 text-center">
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Psych Index</span>
+                <span id="cog-comp" class="text-lg font-bold font-mono text-purple-400">0%</span>
+              </div>
+            </div>
+            <div class="text-xs font-semibold text-slate-300 pt-1">Detected Cognitive Levers &amp; Linguistic Anchors:</div>
+            <div id="auto-cog-cues" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll">
+              <!-- Cognitive triggers rendered here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. CDR Disarm & Reconstruction -->
+        <div class="bg-cyber-800 border border-cyber-600 rounded-xl overflow-hidden shadow-xl">
+          <div class="p-4 border-b border-cyber-600 bg-cyber-900/60 flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> 4. Content Disarm &amp; Reconstruction (CDR) Engine
+            </h4>
+            <span class="text-[11px] text-slate-400">Neutralization of Active Payloads &amp; Double Extensions</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-cyber-900/80 text-slate-400 uppercase font-mono text-[11px] border-b border-cyber-600">
+                <tr>
+                  <th class="py-2.5 px-4">Original File</th>
+                  <th class="py-2.5 px-4">Sanitized File</th>
+                  <th class="py-2.5 px-4">CDR Action</th>
+                  <th class="py-2.5 px-4">Neutralized Threats</th>
+                  <th class="py-2.5 px-4">Safety Status</th>
+                </tr>
+              </thead>
+              <tbody id="auto-cdr-tbody" class="divide-y divide-cyber-700/60 font-mono text-[11px]">
+                <!-- CDR reports rendered here -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -390,14 +538,136 @@ CS_GW_SMTP_RELAY_PORT=2525</pre>
   <script>
     // Tab Switching
     function switchTab(tabId) {
-      ['stream', 'quarantine', 'simulator', 'topology'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-btn-${t}`).className = 'px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2';
+      ['stream', 'autopsy', 'quarantine', 'simulator', 'topology'].forEach(t => {
+        const pane = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (pane) pane.classList.add('hidden');
+        if (btn) btn.className = 'px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2';
       });
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      document.getElementById(`tab-btn-${tabId}`).className = 'px-4 py-2.5 text-sm font-semibold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2';
+      const activePane = document.getElementById(`tab-${tabId}`);
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activePane) activePane.classList.remove('hidden');
+      if (activeBtn) activeBtn.className = 'px-4 py-2.5 text-sm font-semibold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2';
 
       if (tabId === 'quarantine') loadQuarantineList();
+    }
+
+    let currentAutopsyDossier = null;
+
+    function openAutopsy(caseId) {
+      switchTab('autopsy');
+      document.getElementById('autopsy-search-input').value = caseId;
+      fetchAutopsyDossier(caseId);
+    }
+
+    async function fetchAutopsyDossier(targetCaseId) {
+      const caseId = targetCaseId || document.getElementById('autopsy-search-input').value.trim();
+      if (!caseId) {
+        alert("Please enter a valid Case ID (e.g. SPANDR-ESG-...)");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/v1/autopsy/${caseId}`);
+        if (!res.ok) {
+          alert(`Autopsy report for ${caseId} could not be retrieved. Ensure case is in vault.`);
+          return;
+        }
+        const data = await res.json();
+        const dossier = data.autopsy_dossier;
+        currentAutopsyDossier = dossier;
+        renderAutopsyDossier(dossier);
+      } catch (e) {
+        alert("Autopsy fetch error: " + e);
+      }
+    }
+
+    function renderAutopsyDossier(d) {
+      document.getElementById('autopsy-dossier-empty').classList.add('hidden');
+      document.getElementById('autopsy-dossier-view').classList.remove('hidden');
+
+      document.getElementById('auto-ref').innerText = d.autopsy_id;
+      document.getElementById('auto-ip').innerText = d.originating_ip;
+      document.getElementById('auto-loc').innerText = d.origin_country;
+
+      // 1. Relay Hops
+      const hopsTbody = document.getElementById('auto-hops-tbody');
+      hopsTbody.innerHTML = (d.hop_sequence || []).map(h => {
+        const isTor = h.is_tor_or_vpn;
+        const tag = h.threat_intel ? h.threat_intel.type : 'Standard Relay';
+        return `
+          <tr class="hover:bg-cyber-700/40 transition">
+            <td class="py-2.5 px-4 font-bold text-cyan-400">#${h.hop_number} ${h.is_originating ? '<span class="text-[10px] text-rose-400">(ORIGIN)</span>' : ''}</td>
+            <td class="py-2.5 px-4 text-white">${escapeHtml(h.from_host)}</td>
+            <td class="py-2.5 px-4 text-slate-400">${escapeHtml(h.by_host)}</td>
+            <td class="py-2.5 px-4 ${isTor ? 'text-rose-400 font-bold' : 'text-amber-300'}">${h.ip_address}</td>
+            <td class="py-2.5 px-4 text-slate-300">${escapeHtml(h.protocol)} &bull; ${escapeHtml(h.tls_version)}</td>
+            <td class="py-2.5 px-4 text-right">${h.delta_seconds}s</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono ${isTor ? 'bg-rose-950 text-rose-300 border border-rose-800 animate-pulse' : 'bg-cyber-700 text-slate-300'}">${tag}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // 2. MITRE Matrix
+      const mitreBox = document.getElementById('auto-mitre-container');
+      mitreBox.innerHTML = (d.mitre_attack_matrix || []).map(m => `
+        <div class="p-3 bg-cyber-900 rounded-lg border border-cyber-700">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-rose-400">${m.id} &bull; ${escapeHtml(m.technique)}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 uppercase font-mono">${escapeHtml(m.tactic)}</span>
+          </div>
+          <div class="text-[11px] text-slate-300 mt-1 font-semibold">${escapeHtml(m.subtechnique || '')}</div>
+          <div class="text-[11px] text-slate-400 mt-1">${escapeHtml(m.description || '')}</div>
+          ${m.finding_title ? `<div class="text-[10px] text-amber-400 font-mono mt-1.5 bg-amber-950/40 p-1 rounded border border-amber-900/50">Evidence: ${escapeHtml(m.finding_title)}</div>` : ''}
+        </div>
+      `).join('');
+
+      // 3. Cognitive Linguistics
+      const cog = d.cognitive_profile || {};
+      document.getElementById('cog-fear').innerText = cog.fear_coercion_score || 0;
+      document.getElementById('cog-fin').innerText = cog.financial_urgency_score || 0;
+      document.getElementById('cog-auth').innerText = cog.authority_pressure_score || 0;
+      document.getElementById('cog-comp').innerText = `${cog.composite_psychological_index || 0}%`;
+
+      const cuesBox = document.getElementById('auto-cog-cues');
+      cuesBox.innerHTML = (cog.cognitive_cues_observed || []).map(c => `
+        <div class="p-2 bg-cyber-900 rounded border border-cyber-700 flex items-center justify-between text-xs">
+          <div>
+            <span class="text-amber-400 font-mono font-semibold">[${escapeHtml(c.lever)}]</span>
+            <span class="text-slate-300 ml-1">"${escapeHtml(c.trigger)}"</span>
+          </div>
+          <span class="text-[10px] text-slate-400">${escapeHtml(c.explanation)}</span>
+        </div>
+      `).join('') || '<div class="text-slate-500 text-xs font-mono">No aggressive cognitive triggers detected.</div>';
+
+      // 4. CDR Disarm Reports
+      const cdrTbody = document.getElementById('auto-cdr-tbody');
+      if (!d.cdr_disarm_reports || d.cdr_disarm_reports.length === 0) {
+        cdrTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No weaponized attachments detected in this email.</td></tr>`;
+      } else {
+        cdrTbody.innerHTML = d.cdr_disarm_reports.map(r => `
+          <tr class="hover:bg-cyber-700/40 transition">
+            <td class="py-2.5 px-4 text-rose-300 font-bold">${escapeHtml(r.original_filename)}</td>
+            <td class="py-2.5 px-4 text-emerald-400 font-bold">${escapeHtml(r.sanitized_filename)}</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono">${r.disarm_action}</span>
+            </td>
+            <td class="py-2.5 px-4 text-slate-300 text-[10px]">${(r.threats_neutralized || []).join(', ')}</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] ${r.safe_to_render ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'} font-mono">${r.safe_to_render ? 'SAFE TO RENDER' : 'TRAPPED IN ENCLAVE'}</span>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function viewCurrentBsaCert() {
+      if (!currentAutopsyDossier) return;
+      document.getElementById('bsa-modal').classList.remove('hidden');
+      const box = document.getElementById('bsa-modal-content');
+      box.innerText = JSON.stringify(currentAutopsyDossier.bsa_section_63_certificate, null, 2);
     }
 
     // Refresh Data
@@ -436,7 +706,7 @@ CS_GW_SMTP_RELAY_PORT=2525</pre>
 
         return `
           <tr class="hover:bg-cyber-700/40 transition">
-            <td class="py-3 px-4 font-mono text-cyan-400 font-semibold">${e.case_id}</td>
+            <td class="py-3 px-4 font-mono text-cyan-400 font-semibold cursor-pointer hover:underline" onclick="openAutopsy('${e.case_id}')">${e.case_id}</td>
             <td class="py-3 px-4 text-slate-400">${new Date(e.timestamp).toLocaleTimeString()}</td>
             <td class="py-3 px-4">
               <div class="font-medium text-white">${escapeHtml(e.sender)}</div>
@@ -451,7 +721,9 @@ CS_GW_SMTP_RELAY_PORT=2525</pre>
               <span class="px-2 py-0.5 rounded font-mono text-[11px] ${actionBadge}">${e.policy_action}</span>
             </td>
             <td class="py-3 px-4 text-right">
-              <span class="text-slate-400 font-mono text-[11px]">${e.scan_time_ms}ms</span>
+              <button onclick="openAutopsy('${e.case_id}')" class="px-2.5 py-1 bg-cyan-950 hover:bg-cyan-900 text-cyan-400 border border-cyan-800 rounded text-xs font-semibold">
+                <i class="fa-solid fa-microscope mr-1"></i> Autopsy
+              </button>
             </td>
           </tr>
         `;
@@ -471,7 +743,7 @@ CS_GW_SMTP_RELAY_PORT=2525</pre>
           }
           tbody.innerHTML = list.map(c => `
             <tr class="hover:bg-cyber-700/40 transition">
-              <td class="py-3 px-4 font-mono text-purple-400 font-bold">${c.case_id}</td>
+              <td class="py-3 px-4 font-mono text-purple-400 font-bold cursor-pointer hover:underline" onclick="openAutopsy('${c.case_id}')">${c.case_id}</td>
               <td class="py-3 px-4 text-slate-400">${new Date(c.timestamp).toLocaleString()}</td>
               <td class="py-3 px-4 text-slate-200 font-medium">${escapeHtml(c.sender)}</td>
               <td class="py-3 px-4 text-slate-300 truncate max-w-xs">${escapeHtml(c.subject)}</td>
@@ -481,6 +753,7 @@ CS_GW_SMTP_RELAY_PORT=2525</pre>
                 <span class="px-2 py-0.5 rounded text-[11px] font-mono ${c.status === 'RELEASED' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-purple-950 text-purple-300 border border-purple-800'}">${c.status}</span>
               </td>
               <td class="py-3 px-4 text-right space-x-1.5">
+                <button onclick="openAutopsy('${c.case_id}')" title="Forensic Autopsy Lab" class="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 rounded text-cyan-400 text-xs"><i class="fa-solid fa-microscope"></i></button>
                 <button onclick="viewBsaCert('${c.case_id}')" title="Section 63 BSA Certificate" class="px-2 py-1 bg-cyber-700 hover:bg-cyber-600 rounded text-amber-400 text-xs"><i class="fa-solid fa-stamp"></i></button>
                 <a href="/api/v1/quarantine/${c.case_id}/raw" download="${c.case_id}.eml" title="Download Raw EML" class="inline-block px-2 py-1 bg-cyber-700 hover:bg-cyber-600 rounded text-cyan-400 text-xs"><i class="fa-solid fa-download"></i></a>
                 <button onclick="releaseQuarantine('${c.case_id}')" title="Release to Mailbox" class="px-2 py-1 bg-emerald-900/70 hover:bg-emerald-800 rounded text-emerald-300 text-xs"><i class="fa-solid fa-paper-plane"></i></button>

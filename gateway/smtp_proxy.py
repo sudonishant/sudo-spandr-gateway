@@ -234,7 +234,8 @@ class SMTPProxySession:
                                 category=inspection.category,
                                 findings=inspection.findings,
                                 auth_summary=inspection.auth_summary,
-                                client_ip=self.client_ip
+                                client_ip=self.client_ip,
+                                autopsy_dossier=inspection.autopsy_dossier
                             )
                         await self.send_line(inspection.smtp_reply)
 
@@ -249,7 +250,8 @@ class SMTPProxySession:
                             category=inspection.category,
                             findings=inspection.findings,
                             auth_summary=inspection.auth_summary,
-                            client_ip=self.client_ip
+                            client_ip=self.client_ip,
+                            autopsy_dossier=inspection.autopsy_dossier
                         )
                         await self.send_line("250 2.0.0 Message queued for administrative review (Quarantined in Vault)")
 

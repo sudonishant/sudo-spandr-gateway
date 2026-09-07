@@ -39,7 +39,8 @@ class QuarantineVault:
         category: str,
         findings: List[Dict[str, Any]],
         auth_summary: Dict[str, Any],
-        client_ip: str = "127.0.0.1"
+        client_ip: str = "127.0.0.1",
+        autopsy_dossier: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Stores a quarantined message and writes cryptographically sealed metadata."""
         now_utc = datetime.now(timezone.utc).isoformat()
@@ -61,6 +62,7 @@ class QuarantineVault:
             "size_bytes": len(raw_eml_bytes),
             "findings": findings,
             "auth_summary": auth_summary,
+            "autopsy_dossier": autopsy_dossier,
             "bsa_section_63": {
                 "hash_algorithm": "SHA-256",
                 "evidence_hash": sha256_hash,

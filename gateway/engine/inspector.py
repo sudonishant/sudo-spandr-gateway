@@ -15,6 +15,7 @@ import requests
 from gateway.config import settings
 from gateway.engine.rules import evaluate_rules, RuleFinding
 from gateway.engine.authenticator import evaluate_authentication, AuthResult
+from gateway.engine.autopsy import autopsy_engine, AutopsyDossier
 
 
 @dataclass
@@ -34,6 +35,7 @@ class InspectionResult:
     evidence_sha256: str
     scan_time_ms: float
     evaluated_by: str      # "local_engine" or "hybrid_web_core"
+    autopsy_dossier: Optional[Dict[str, Any]] = None
 
 
 class GatewayInspector:
@@ -121,13 +123,12 @@ class GatewayInspector:
             if not attachments:
                 attachments = p_atts
 
-        # Compute SHA-256 Hash of content
-        if raw_eml_bytes:
-            evidence_sha256 = hashlib.sha256(raw_eml_bytes).hexdigest()
-        else:
-            canonical = f"{sender}|{recipient}|{subject}|{body}".encode("utf-8")
-            evidence_sha256 = hashlib.sha256(canonical).hexdigest()
+        # If raw EML was not supplied, synthesize standardized RFC5322 EML bytes
+        if not raw_eml_bytes:
+            raw_eml_bytes = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}".encode("utf-8")
 
+        # Compute SHA-256 Hash of RFC5322 content
+        evidence_sha256 = hashlib.sha256(raw_eml_bytes).hexdigest()
         case_id = f"SPANDR-ESG-{evidence_sha256[:10].upper()}"
 
         evaluated_by = "local_engine"
@@ -231,6 +232,24 @@ class GatewayInspector:
             if not subject.startswith(self.settings.SUBJECT_TAG_PREFIX):
                 modified_subject = f"{self.settings.SUBJECT_TAG_PREFIX} {subject}"
 
+        # Generate Deep Forensic Autopsy Dossier
+        if not raw_eml_bytes:
+            raw_eml_bytes = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}".encode("utf-8")
+
+        findings_dicts = [asdict(f) for f in findings]
+        dossier = autopsy_engine.generate_full_autopsy(
+            sender=sender,
+            recipient=recipient,
+            subject=subject,
+            body=body,
+            headers=headers,
+            findings=findings_dicts,
+            threat_score=composite_score,
+            dominant_category=dominant_category,
+            raw_eml_bytes=raw_eml_bytes,
+            attachments=attachments
+        )
+
         scan_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
         return InspectionResult(
@@ -241,12 +260,13 @@ class GatewayInspector:
             postfix_code=postfix_code,
             smtp_reply=smtp_reply,
             category=dominant_category,
-            findings=[asdict(f) for f in findings],
+            findings=findings_dicts,
             auth_summary=asdict(auth_res),
             headers_to_add=headers_to_add,
             original_subject=subject,
             modified_subject=modified_subject,
             evidence_sha256=evidence_sha256,
             scan_time_ms=scan_time_ms,
-            evaluated_by=evaluated_by
+            evaluated_by=evaluated_by,
+            autopsy_dossier=asdict(dossier)
         )

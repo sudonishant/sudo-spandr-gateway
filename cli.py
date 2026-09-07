@@ -224,6 +224,119 @@ def cmd_quarantine_list():
     console.print(table)
 
 
+def cmd_autopsy(case_id_or_file: str):
+    """Generates and prints a surgical terminal autopsy report for a case or raw EML."""
+    from gateway.engine.autopsy import autopsy_engine
+
+    case = vault.get_case(case_id_or_file)
+    raw_eml = None
+
+    if case:
+        raw_eml = vault.get_raw_eml(case_id_or_file)
+        dossier_data = case.get("autopsy_dossier")
+    elif os.path.exists(case_id_or_file):
+        with open(case_id_or_file, "rb") as f:
+            raw_eml = f.read()
+        inspector = GatewayInspector()
+        p_sender, p_rcpt, p_subj, p_body, p_hdrs, p_atts = inspector.parse_raw_eml(raw_eml)
+        res = inspector.inspect(
+            sender=p_sender,
+            recipient=p_rcpt,
+            subject=p_subj,
+            body=p_body,
+            headers=p_hdrs,
+            attachments=p_atts,
+            raw_eml_bytes=raw_eml
+        )
+        dossier_data = res.autopsy_dossier
+    else:
+        console.print(f"[bold red]Error:[/bold red] Case or file '{case_id_or_file}' not found in vault.")
+        return
+
+    if not dossier_data and raw_eml:
+        inspector = GatewayInspector()
+        p_sender, p_rcpt, p_subj, p_body, p_hdrs, p_atts = inspector.parse_raw_eml(raw_eml)
+        dossier_obj = autopsy_engine.generate_full_autopsy(
+            sender=p_sender,
+            recipient=p_rcpt,
+            subject=p_subj,
+            body=p_body,
+            headers=p_hdrs,
+            findings=[],
+            threat_score=90,
+            dominant_category="Forensic Inspection",
+            raw_eml_bytes=raw_eml,
+            attachments=p_atts
+        )
+        from dataclasses import asdict
+        dossier_data = asdict(dossier_obj)
+
+    if not dossier_data:
+        console.print("[bold red]No autopsy data could be extracted.[/bold red]")
+        return
+
+    console.print(Panel.fit(
+        f"[bold cyan]SUDO SPANDR SURGICAL EMAIL AUTOPSY DOSSIER[/bold cyan]\n"
+        f"[bold white]Case Ref:[/bold white] {dossier_data.get('autopsy_id')}\n"
+        f"[bold white]Originating IP:[/bold white] [bold red]{dossier_data.get('originating_ip')}[/bold red] ({dossier_data.get('origin_country')})\n"
+        f"[bold white]Timestamp (UTC):[/bold white] {dossier_data.get('timestamp_utc')}",
+        title="🔬 FORENSIC POSTMORTEM",
+        border_style="magenta"
+    ))
+
+    # 1. Multi-Hop Relays
+    hops_table = Table(title="TRANSPORT RELAY RECONSTRUCTION (MULTI-HOP HOPS)", show_header=True, header_style="bold blue")
+    hops_table.add_column("Hop #", justify="center")
+    hops_table.add_column("From Host", style="white")
+    hops_table.add_column("By Host", style="dim")
+    hops_table.add_column("IP Address", style="yellow")
+    hops_table.add_column("Protocol / TLS", style="cyan")
+    hops_table.add_column("Δ Time (s)", justify="right")
+    hops_table.add_column("Threat Tag", style="bold red")
+
+    for h in dossier_data.get("hop_sequence", []):
+        threat_tag = h["threat_intel"].get("type", "Standard")
+        if h.get("is_tor_or_vpn"):
+            threat_tag = f"[blink red]{threat_tag}[/blink red]"
+        hops_table.add_row(
+            str(h.get("hop_number")),
+            h.get("from_host"),
+            h.get("by_host"),
+            h.get("ip_address"),
+            f"{h.get('protocol')}\n{h.get('tls_version')}",
+            str(h.get("delta_seconds")),
+            threat_tag
+        )
+    console.print(hops_table)
+
+    # 2. MITRE ATT&CK
+    mitre_table = Table(title="MITRE ATT&CK MATRIX MAPPING", show_header=True, header_style="bold red")
+    mitre_table.add_column("Technique ID", style="bold red")
+    mitre_table.add_column("Tactic", style="white")
+    mitre_table.add_column("Technique / Subtechnique", style="cyan")
+    mitre_table.add_column("Observed Evidence", style="dim")
+
+    for m in dossier_data.get("mitre_attack_matrix", []):
+        mitre_table.add_row(
+            m.get("id"),
+            m.get("tactic"),
+            f"{m.get('technique')} -> {m.get('subtechnique')}",
+            str(m.get("finding_title") or m.get("description")[:60])
+        )
+    console.print(mitre_table)
+
+    # 3. Section 63 BSA Certificate
+    bsa = dossier_data.get("bsa_section_63_certificate", {})
+    cert_text = (
+        f"[bold green]Certificate ID:[/bold green] {bsa.get('certificate_id')}\n"
+        f"[bold green]Legal Standard:[/bold green] {bsa.get('statute')}\n"
+        f"[bold green]Recorded SHA-256:[/bold green] {bsa.get('cryptographic_verification', {}).get('recorded_hash')}\n"
+        f"[bold green]Integrity Seal:[/bold green] {bsa.get('cryptographic_verification', {}).get('authenticity_seal')}\n"
+        f"[dim]{bsa.get('examiner_declaration')}[/dim]"
+    )
+    console.print(Panel(cert_text, title="⚖️ BSA 2023 SECTION 63 COURT CERTIFICATE", border_style="green"))
+
+
 def main():
     parser = argparse.ArgumentParser(description="SUDO SPANDR Enterprise ESG v4.0 CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
@@ -237,6 +350,10 @@ def main():
 
     # simulate
     subparsers.add_parser("simulate", help="Run multi-vector attack & policy simulation")
+
+    # autopsy
+    autopsy_parser = subparsers.add_parser("autopsy", help="Perform surgical forensic autopsy on case or EML file")
+    autopsy_parser.add_argument("target", help="Case ID (e.g. SPANDR-ESG-1234) or path to .eml file")
 
     # test-smtp
     smtp_parser = subparsers.add_parser("test-smtp", help="Send test email to SMTP gateway")
@@ -256,6 +373,8 @@ def main():
         asyncio.run(run_unified_gateway(args.host, args.smtp_port, args.milter_port, args.api_port))
     elif args.command == "simulate":
         cmd_simulate()
+    elif args.command == "autopsy":
+        cmd_autopsy(args.target)
     elif args.command == "test-smtp":
         cmd_test_smtp(args.host, args.port, args.sender, args.recipient, args.subject, args.body)
     elif args.command == "quarantine-list":
