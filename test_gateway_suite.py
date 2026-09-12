@@ -255,7 +255,88 @@ class TestSudoSpandrESG(unittest.TestCase):
         self.assertIn("autopsy_dossier", autopsy_data)
         self.assertEqual(autopsy_data["autopsy_dossier"]["bsa_section_63_certificate"]["case_reference"], case_id.replace("SPANDR-ESG-", "AUTOPSY-"))
 
+    def test_10_archiver_and_analyst_alert(self):
+        """Test continuous email archiving (.eml, _report.json, _summary.txt) and analyst notifier."""
+        from gateway.archiver import archiver
+        from gateway.notifier import notifier
+
+        raw_test_bytes = b"From: attacker@fake-domain.com\nTo: user@target.org\nSubject: Critical Security Notice\n\nImmediate Action Required."
+        case_id = "SPANDR-ESG-TEST-ARCHIVE-999"
+
+        # Archive the email
+        rec = archiver.archive_message(
+            case_id=case_id,
+            raw_eml_bytes=raw_test_bytes,
+            sender="attacker@fake-domain.com",
+            recipient="user@target.org",
+            subject="Critical Security Notice",
+            threat_score=85,
+            verdict="MALICIOUS",
+            policy_action="QUARANTINE",
+            category="Credential Harvester",
+            findings=[{"rule_id": "TEST-R1", "title": "Urgency Trigger", "score": 40, "severity": "HIGH"}],
+            auth_summary={"spf_status": "FAIL", "dkim_status": "NONE", "dmarc_status": "FAIL"}
+        )
+
+        self.assertEqual(rec["case_id"], case_id)
+        self.assertEqual(rec["threat_score"], 85)
+
+        # Verify summary text exists and contains key fields
+        summary_text = archiver.get_summary_text(case_id)
+        self.assertIsNotNone(summary_text)
+        self.assertIn("Critical Security Notice", summary_text)
+        self.assertIn("SPANDR-ESG-TEST-ARCHIVE-999", summary_text)
+        self.assertIn("Section 63 of Bharatiya Sakshya Adhiniyam", summary_text)
+
+        # Verify case retrieval
+        case_data = archiver.get_case(case_id)
+        self.assertIsNotNone(case_data)
+        self.assertEqual(case_data["sender"], "attacker@fake-domain.com")
+
+        # Test analyst alert dispatch
+        alert_res = notifier.notify_analyst(
+            case_id=case_id,
+            score=85,
+            verdict="MALICIOUS",
+            category="Credential Harvester",
+            sender="attacker@fake-domain.com",
+            recipient="user@target.org",
+            subject="Critical Security Notice",
+            findings=[{"rule_id": "TEST-R1", "title": "Urgency Trigger", "score": 40}],
+            summary_text=summary_text
+        )
+        self.assertIn("desktop", alert_res)
+        self.assertIn("telegram", alert_res)
+        self.assertIn("webhook", alert_res)
+        self.assertIn("email", alert_res)
+
+    def test_11_archive_rest_endpoints(self):
+        """Test FastAPI Archive listing and test alert REST endpoints."""
+        # 1. Test GET /api/v1/archive
+        res = self.client.get("/api/v1/archive")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("cases", data)
+        self.assertGreaterEqual(data["total_cases"], 1)
+
+        # 2. Test POST /api/v1/analyst/test-alert
+        alert_req = {
+            "threat_score": 92,
+            "category": "BEC Wire Fraud Test",
+            "sender": "attacker@evil-spoof.com",
+            "recipient": "analyst@target.com",
+            "subject": "Wire Transfer Urgent Test"
+        }
+        alert_res = self.client.post("/api/v1/analyst/test-alert", json=alert_req)
+        self.assertEqual(alert_res.status_code, 200)
+        alert_data = alert_res.json()
+        self.assertEqual(alert_data["status"], "success")
+        self.assertIn("channel_dispatch_results", alert_data)
+        self.assertIn("desktop", alert_data["channel_dispatch_results"])
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

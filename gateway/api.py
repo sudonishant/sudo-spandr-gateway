@@ -17,7 +17,10 @@ from gateway.config import settings
 from gateway.engine.inspector import GatewayInspector
 from gateway.quarantine import vault
 from gateway.smtp_proxy import metrics
+from gateway.archiver import archiver
+from gateway.notifier import notifier
 from gateway.web_ui import DASHBOARD_HTML
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -139,9 +142,49 @@ async def inspect_email(req: EmailInspectRequest) -> Dict[str, Any]:
     # Record metrics for API inspections
     metrics.record(res, req.client_ip or "127.0.0.1", req.sender, req.recipient)
 
-    # If score is critical and auto-quarantine is enabled, store in vault
+    raw_reconstructed = f"From: {req.sender}\nTo: {req.recipient}\nSubject: {req.subject}\n\n{req.body}".encode("utf-8")
+
+    # Continuous Intercepted Email Archival (All Emails)
+    if settings.ENABLE_ALL_MAIL_ARCHIVE:
+        try:
+            archiver.archive_message(
+                case_id=res.case_id,
+                raw_eml_bytes=raw_reconstructed,
+                sender=req.sender,
+                recipient=req.recipient,
+                subject=res.original_subject,
+                threat_score=res.threat_score,
+                verdict=res.verdict,
+                policy_action=res.policy_action,
+                category=res.category,
+                findings=res.findings,
+                auth_summary=res.auth_summary,
+                client_ip=req.client_ip or "127.0.0.1",
+                autopsy_dossier=res.autopsy_dossier
+            )
+        except Exception as ex:
+            print(f"[API] Archive error for {res.case_id}: {ex}")
+
+    # Automated SOC Analyst Alerting for High Threat Emails
+    if res.threat_score >= settings.ALERT_ANALYST_MIN_SCORE:
+        summary_txt = archiver.get_summary_text(res.case_id) or ""
+        asyncio.create_task(
+            notifier.async_notify_analyst(
+                case_id=res.case_id,
+                score=res.threat_score,
+                verdict=res.verdict,
+                category=res.category,
+                sender=req.sender,
+                recipient=req.recipient,
+                subject=res.original_subject,
+                findings=res.findings,
+                summary_text=summary_txt,
+                full_inspection=asdict(res)
+            )
+        )
+
+    # If score is critical and auto-quarantine is enabled, store in quarantine vault
     if res.policy_action in ["QUARANTINE", "REJECT"] and settings.AUTO_QUARANTINE_HIGH_RISK:
-        raw_reconstructed = f"From: {req.sender}\nTo: {req.recipient}\nSubject: {req.subject}\n\n{req.body}".encode("utf-8")
         vault.store(
             case_id=res.case_id,
             raw_eml_bytes=raw_reconstructed,
@@ -157,6 +200,7 @@ async def inspect_email(req: EmailInspectRequest) -> Dict[str, Any]:
         )
 
     return asdict(res)
+
 
 
 @app.post("/api/v1/autopsy/dissect-raw")
@@ -324,3 +368,100 @@ async def websocket_live_feed(websocket: WebSocket):
         pass
     finally:
         metrics.event_subscribers.discard(q)
+
+
+# --- INTERCEPTED MAIL ARCHIVE APIS ---
+
+@app.get("/api/v1/archive")
+async def list_archived_emails(limit: int = 100):
+    """Lists all intercepted and archived emails with metadata and verdicts."""
+    return {
+        "status": "success",
+        "archive_dir": str(archiver.archive_dir),
+        "total_cases": len(archiver.list_archived_cases(limit=limit)),
+        "cases": archiver.list_archived_cases(limit=limit)
+    }
+
+
+@app.get("/api/v1/archive/{case_id}")
+async def get_archived_case_details(case_id: str):
+    """Retrieves complete archived autopsy report and paths for a specific case."""
+    case = archiver.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Archived case {case_id} not found.")
+    return case
+
+
+@app.get("/api/v1/archive/{case_id}/summary", response_class=PlainTextResponse)
+async def get_archived_case_summary(case_id: str):
+    """Returns human-readable text summary of the archived email."""
+    txt = archiver.get_summary_text(case_id)
+    if not txt:
+        raise HTTPException(status_code=404, detail=f"Summary for case {case_id} not found.")
+    return PlainTextResponse(content=txt, media_type="text/plain")
+
+
+@app.post("/api/v1/archive/config")
+async def configure_archive_dir(req: Dict[str, str]):
+    """Configures the storage directory where intercepted emails will be saved."""
+    new_dir = req.get("archive_dir")
+    if not new_dir:
+        raise HTTPException(status_code=400, detail="Missing 'archive_dir' in request body.")
+    resolved = archiver.set_archive_dir(new_dir)
+    return {
+        "status": "success",
+        "message": f"Archive storage path updated to {resolved}",
+        "archive_dir": str(resolved)
+    }
+
+
+# --- SOC ANALYST ALERT TEST API ---
+
+class AlertTestRequest(BaseModel):
+    threat_score: Optional[int] = 88
+    category: Optional[str] = "Phishing / BEC Simulation"
+    sender: Optional[str] = "attacker@malicious-spoof.xyz"
+    recipient: Optional[str] = "soc-analyst@enterprise.corp"
+    subject: Optional[str] = "TEST ALERT: High Threat Email Intercepted"
+
+
+@app.post("/api/v1/analyst/test-alert")
+async def trigger_test_analyst_alert(req: Optional[AlertTestRequest] = None):
+    """Triggers a test notification across all configured analyst channels."""
+    score = req.threat_score if req else 88
+    cat = req.category if req else "Phishing / BEC Simulation"
+    snd = req.sender if req else "attacker@malicious-spoof.xyz"
+    rcp = req.recipient if req else "soc-analyst@enterprise.corp"
+    sbj = req.subject if req else "TEST ALERT: High Threat Email Intercepted"
+    test_case_id = f"TEST-ALERT-{int(asyncio.get_event_loop().time())}"
+
+    test_findings = [
+        {"rule_id": "TEST-01", "title": "Urgent Financial Coercion Detected", "score": 45, "severity": "HIGH"},
+        {"rule_id": "TEST-02", "title": "Untrusted Relay Infrastructure", "score": 35, "severity": "CRITICAL"}
+    ]
+    summary = f"Simulated test alert triggered from SOC API for case {test_case_id}.\nScore: {score}/100"
+
+    results = notifier.notify_analyst(
+        case_id=test_case_id,
+        score=score,
+        verdict="MALICIOUS",
+        category=cat,
+        sender=snd,
+        recipient=rcp,
+        subject=sbj,
+        findings=test_findings,
+        summary_text=summary
+    )
+
+    return {
+        "status": "success",
+        "case_id": test_case_id,
+        "channel_dispatch_results": results,
+        "configured_channels": {
+            "desktop_enabled": settings.ENABLE_DESKTOP_NOTIFICATIONS,
+            "telegram_configured": bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID),
+            "webhook_configured": bool(settings.ANALYST_WEBHOOK_URL or settings.WEBHOOK_URL),
+            "email_configured": bool(settings.ANALYST_EMAIL)
+        }
+    }
+

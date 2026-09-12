@@ -69,5 +69,21 @@ class GatewaySettings(BaseSettings):
     WEBHOOK_URL: Optional[str] = None
     WEBHOOK_MIN_SCORE: int = 70
 
+    # Continuous Intercepted Email Archival (All Received Emails)
+    ENABLE_ALL_MAIL_ARCHIVE: bool = True
+    ARCHIVE_DIR: Path = Field(default_factory=lambda: BASE_DIR / "intercepted_vault")
+
+    # Automated SOC Analyst Alerting for High-Score Threat Emails
+    ALERT_ANALYST_MIN_SCORE: int = 70
+    ENABLE_DESKTOP_NOTIFICATIONS: bool = True
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    TELEGRAM_CHAT_ID: Optional[str] = None
+    ANALYST_WEBHOOK_URL: Optional[str] = None
+    ANALYST_EMAIL: Optional[str] = None
+    SMTP_ALERT_HOST: str = "127.0.0.1"
+    SMTP_ALERT_PORT: int = 25
+    SMTP_ALERT_FROM: str = "alerts@sudo-spandr-esg.local"
+
 
 settings = GatewaySettings()
+

@@ -29,8 +29,11 @@ from gateway.engine.inspector import GatewayInspector
 from gateway.milter_server import AsyncMilterServer
 from gateway.quarantine import vault
 from gateway.smtp_proxy import AsyncSMTPProxyServer, metrics
+from gateway.archiver import archiver
+from gateway.notifier import notifier
 
 console = Console()
+
 
 
 def print_banner():
@@ -224,6 +227,110 @@ def cmd_quarantine_list():
     console.print(table)
 
 
+def cmd_archive_list(limit: int = 50):
+    """Lists all continuous intercepted emails saved in the archive directory."""
+    cases = archiver.list_archived_cases(limit=limit)
+    console.print(f"[bold cyan]📁 INTERCEPTED EMAIL VAULT ARCHIVE[/bold cyan] (Directory: [yellow]{archiver.archive_dir}[/yellow])\n")
+    if not cases:
+        console.print("[yellow]Archive vault is currently empty. Start the gateway or send an email to populate.[/yellow]")
+        return
+
+    table = Table(title="INTERCEPTED INCOMING EMAIL ARCHIVE", show_header=True, header_style="bold cyan", expand=True)
+    table.add_column("Case ID", style="bold white")
+    table.add_column("Timestamp (UTC)", style="dim")
+    table.add_column("Sender", style="green")
+    table.add_column("Subject", style="cyan")
+    table.add_column("Score", justify="center", style="bold red")
+    table.add_column("Verdict", justify="center")
+    table.add_column("Action", justify="center")
+    table.add_column("Client IP", style="dim")
+
+    for c in cases:
+        score = c.get("threat_score", 0)
+        score_color = "red" if score >= 75 else ("yellow" if score >= 40 else "green")
+        table.add_row(
+            c.get("case_id"),
+            c.get("timestamp", "")[:19],
+            c.get("sender"),
+            c.get("subject", "(No Subject)")[:35],
+            f"[{score_color}]{score}%[/{score_color}]",
+            c.get("verdict"),
+            c.get("policy_action"),
+            c.get("client_ip", "127.0.0.1")
+        )
+    console.print(table)
+    console.print(f"[dim]Total records displayed: {len(cases)} | Use 'python3 cli.py archive-view <case_id>' for full report.[/dim]\n")
+
+
+def cmd_archive_view(case_id: str):
+    """Views the stored forensic summary and report for an archived email."""
+    summary = archiver.get_summary_text(case_id)
+    case = archiver.get_case(case_id)
+    if not summary and not case:
+        console.print(f"[bold red]✗ Archived case {case_id} not found in {archiver.archive_dir}[/bold red]")
+        return
+
+    if summary:
+        console.print(Panel(summary, title=f"FORENSIC REPORT: {case_id}", border_style="cyan"))
+
+    if case and "archive_paths" in case:
+        paths = case["archive_paths"]
+        console.print(f"[bold green]Raw EML:[/bold green]   {paths.get('eml')}")
+        console.print(f"[bold green]JSON Dossier:[/bold green] {paths.get('report')}")
+        console.print(f"[bold green]Text Summary:[/bold green] {paths.get('summary')}")
+
+
+def cmd_test_alert(score: int = 88, category: str = "BEC / Executive Impersonation"):
+    """Triggers and verifies multi-channel alert dispatch to analysts."""
+    console.print("[bold yellow]🚨 TRIGGERING MULTI-CHANNEL SOC ANALYST ALERT TEST[/bold yellow]\n")
+    test_case_id = f"ALERT-TEST-{int(time.time())}"
+    test_findings = [
+        {"rule_id": "SOC-ALERT-01", "title": "Critical Wire Transfer Request Detected", "score": 50, "severity": "CRITICAL"},
+        {"rule_id": "SOC-ALERT-02", "title": "Typosquatted Banking Domain", "score": 38, "severity": "HIGH"}
+    ]
+    summary = f"Simulated High-Score Threat Test Alert\nCase: {test_case_id}\nThreat Score: {score}/100"
+
+    results = notifier.notify_analyst(
+        case_id=test_case_id,
+        score=score,
+        verdict="MALICIOUS",
+        category=category,
+        sender="attacker@fake-bank-login.in",
+        recipient="chief-accountant@enterprise.in",
+        subject="CRITICAL: Immediate Wire Transfer Required ($1.2M)",
+        findings=test_findings,
+        summary_text=summary
+    )
+
+    table = Table(title="ANALYST ALERT DISPATCH STATUS", show_header=True, header_style="bold red")
+    table.add_column("Channel", style="bold white")
+    table.add_column("Status", justify="center")
+    table.add_column("Channel Details", style="dim")
+
+    table.add_row(
+        "Desktop Notification",
+        "[bold green]✓ SENT[/bold green]" if results.get("desktop") else "[yellow]OFF / UNSUPPORTED[/yellow]",
+        "Linux notify-send pop-up on host"
+    )
+    table.add_row(
+        "Telegram Bot Alert",
+        "[bold green]✓ SENT[/bold green]" if results.get("telegram") else "[dim]SKIPPED (No Token in .env)[/dim]",
+        f"Bot Token: {settings.TELEGRAM_BOT_TOKEN or 'Not configured'}"
+    )
+    table.add_row(
+        "SOC Webhook (Discord/Slack)",
+        "[bold green]✓ SENT[/bold green]" if results.get("webhook") else "[dim]SKIPPED (No Webhook URL in .env)[/dim]",
+        f"URL: {settings.ANALYST_WEBHOOK_URL or settings.WEBHOOK_URL or 'Not configured'}"
+    )
+    table.add_row(
+        "Analyst Email",
+        "[bold green]✓ SENT[/bold green]" if results.get("email") else "[dim]SKIPPED (No Email in .env)[/dim]",
+        f"Target: {settings.ANALYST_EMAIL or 'Not configured'}"
+    )
+    console.print(table)
+
+
+
 def cmd_autopsy(case_id_or_file: str):
     """Generates and prints a surgical terminal autopsy report for a case or raw EML."""
     from gateway.engine.autopsy import autopsy_engine
@@ -367,6 +474,18 @@ def main():
     # quarantine
     subparsers.add_parser("quarantine-list", help="List all quarantined messages in vault")
 
+    # archive-list
+    archive_list_parser = subparsers.add_parser("archive-list", help="List all intercepted incoming emails in vault")
+    archive_list_parser.add_argument("--limit", type=int, default=50, help="Maximum records to list (default: 50)")
+
+    # archive-view
+    archive_view_parser = subparsers.add_parser("archive-view", help="View forensic report of an archived email")
+    archive_view_parser.add_argument("case_id", help="Case ID (e.g. SPANDR-ESG-XXXX)")
+
+    # test-alert
+    test_alert_parser = subparsers.add_parser("test-alert", help="Send test high-threat alert to all configured analyst channels")
+    test_alert_parser.add_argument("--score", type=int, default=88, help="Simulated threat score (default: 88)")
+
     args = parser.parse_args()
 
     if args.command == "start":
@@ -379,6 +498,12 @@ def main():
         cmd_test_smtp(args.host, args.port, args.sender, args.recipient, args.subject, args.body)
     elif args.command == "quarantine-list":
         cmd_quarantine_list()
+    elif args.command == "archive-list":
+        cmd_archive_list(args.limit)
+    elif args.command == "archive-view":
+        cmd_archive_view(args.case_id)
+    elif args.command == "test-alert":
+        cmd_test_alert(args.score)
     else:
         # Default: print simulation
         cmd_simulate()
@@ -386,3 +511,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

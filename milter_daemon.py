@@ -17,6 +17,9 @@ from typing import Any, Dict, Optional
 from gateway.config import settings
 from gateway.engine.inspector import GatewayInspector, InspectionResult
 from gateway.milter_server import AsyncMilterServer
+from gateway.archiver import archiver
+from gateway.notifier import notifier
+
 
 
 class SudoSpandrMilterDaemon:
@@ -56,7 +59,45 @@ class SudoSpandrMilterDaemon:
 
             print(f"[Milter Daemon] Result: {res.postfix_code} (Threat Score: {res.threat_score}%) -> Action: {res.policy_action} [{res.category}]")
 
+            # Continuous Intercepted Email Archival
+            if settings.ENABLE_ALL_MAIL_ARCHIVE:
+                raw_bytes = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}".encode("utf-8")
+                try:
+                    archiver.archive_message(
+                        case_id=res.case_id,
+                        raw_eml_bytes=raw_bytes,
+                        sender=sender,
+                        recipient=recipient,
+                        subject=subject,
+                        threat_score=res.threat_score,
+                        verdict=res.verdict,
+                        policy_action=res.policy_action,
+                        category=res.category,
+                        findings=res.findings,
+                        auth_summary=res.auth_summary,
+                        client_ip=client_ip,
+                        autopsy_dossier=res.autopsy_dossier
+                    )
+                except Exception as ex:
+                    print(f"[Milter Daemon] Warning: Archival failed for {res.case_id}: {ex}")
+
+            # Automated Analyst Alerting for High Threat Emails
+            if res.threat_score >= settings.ALERT_ANALYST_MIN_SCORE:
+                summary_txt = archiver.get_summary_text(res.case_id) or ""
+                notifier.notify_analyst(
+                    case_id=res.case_id,
+                    score=res.threat_score,
+                    verdict=res.verdict,
+                    category=res.category,
+                    sender=sender,
+                    recipient=recipient,
+                    subject=subject,
+                    findings=res.findings,
+                    summary_text=summary_txt
+                )
+
             return {
+
                 "status": "success",
                 "case_id": res.case_id,
                 "threat_score": res.threat_score,

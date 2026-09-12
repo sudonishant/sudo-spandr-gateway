@@ -19,8 +19,11 @@ from gateway.config import settings
 from gateway.engine.inspector import GatewayInspector, InspectionResult
 from gateway.quarantine import QuarantineVault, vault
 from gateway.webhook import async_dispatch_webhook
+from gateway.archiver import archiver
+from gateway.notifier import notifier
 
 logger = logging.getLogger("sudospandr.gateway.smtp")
+
 
 
 class GatewayMetrics:
@@ -217,9 +220,50 @@ class SMTPProxySession:
                     # Update Operational Metrics
                     metrics.record(inspection, self.client_ip, self.mail_from, recipient_str)
 
-                    # Asynchronously dispatch webhook if alert threshold met
+                    # Continuous Intercepted Email Archival (All Emails to Vault)
+                    archive_record = None
+                    if settings.ENABLE_ALL_MAIL_ARCHIVE:
+                        try:
+                            archive_record = archiver.archive_message(
+                                case_id=inspection.case_id,
+                                raw_eml_bytes=raw_eml_bytes,
+                                sender=self.mail_from,
+                                recipient=recipient_str,
+                                subject=inspection.original_subject,
+                                threat_score=inspection.threat_score,
+                                verdict=inspection.verdict,
+                                policy_action=inspection.policy_action,
+                                category=inspection.category,
+                                findings=inspection.findings,
+                                auth_summary=inspection.auth_summary,
+                                client_ip=self.client_ip,
+                                autopsy_dossier=inspection.autopsy_dossier
+                            )
+                        except Exception as e:
+                            logger.error(f"Failed to archive intercepted email {inspection.case_id}: {e}")
+
+                    # Automated SOC Analyst Alerting for High Threat Emails
+                    if inspection.threat_score >= settings.ALERT_ANALYST_MIN_SCORE:
+                        summary_txt = archiver.get_summary_text(inspection.case_id) or ""
+                        asyncio.create_task(
+                            notifier.async_notify_analyst(
+                                case_id=inspection.case_id,
+                                score=inspection.threat_score,
+                                verdict=inspection.verdict,
+                                category=inspection.category,
+                                sender=self.mail_from,
+                                recipient=recipient_str,
+                                subject=inspection.original_subject,
+                                findings=inspection.findings,
+                                summary_text=summary_txt,
+                                full_inspection=asdict(inspection)
+                            )
+                        )
+
+                    # Asynchronously dispatch SIEM webhook if threshold met
                     if inspection.threat_score >= settings.WEBHOOK_MIN_SCORE:
                         asyncio.create_task(async_dispatch_webhook(asdict(inspection)))
+
 
                     # Policy Enforcement Actions
                     if inspection.policy_action == "REJECT":

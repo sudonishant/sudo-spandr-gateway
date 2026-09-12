@@ -140,12 +140,16 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <button onclick="switchTab('quarantine')" id="tab-btn-quarantine" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-vault"></i> Evidence Quarantine Vault
       </button>
+      <button onclick="switchTab('archive')" id="tab-btn-archive" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
+        <i class="fa-solid fa-folder-tree text-cyan-400"></i> Intercepted Mail Archive
+      </button>
       <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-vial-virus"></i> Attack &amp; Policy Simulator
       </button>
       <button onclick="switchTab('topology')" id="tab-btn-topology" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-diagram-project"></i> Postfix &amp; Topology
       </button>
+
     </div>
   </div>
 
@@ -232,10 +236,62 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
           </table>
         </div>
       </div>
+    <!-- TAB 2.5: CONTINUOUS INTERCEPTED MAIL ARCHIVE -->
+    <div id="tab-archive" class="hidden space-y-4">
+      <div class="bg-cyber-800 border border-cyber-600 rounded-xl overflow-hidden shadow-xl">
+        <div class="p-4 border-b border-cyber-600 flex flex-wrap items-center justify-between gap-3 bg-cyber-900/60">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-folder-tree text-cyan-400"></i> Intercepted Inbound Email Vault Archive
+            </h3>
+            <p class="text-xs text-slate-400">Continuous forensic persistence of every incoming email (.eml + JSON report + summary)</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="triggerAnalystTestAlert()" class="px-3 py-1.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-bell"></i> Test Analyst Alert
+            </button>
+            <button onclick="loadArchiveList()" class="px-3 py-1.5 bg-cyber-700 hover:bg-cyber-600 text-xs font-semibold rounded-lg border border-cyber-600 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate text-cyan-400"></i> Refresh Archive
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-cyber-900/70 border-b border-cyber-700/60 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+          <div><i class="fa-solid fa-folder text-amber-400 mr-1"></i> Current Storage Vault: <code id="archive-vault-path" class="text-cyan-400 font-mono text-[11px]">Loading...</code></div>
+          <div class="flex items-center gap-3">
+            <span>Desktop Alert: <b class="text-emerald-400">ACTIVE</b></span>
+            <span class="text-slate-600">|</span>
+            <span>Alert Threshold: <b class="text-amber-400">&ge; 70% Threat Score</b></span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-cyber-900/80 text-slate-400 uppercase font-mono text-[11px] border-b border-cyber-600">
+              <tr>
+                <th class="py-3 px-4">Case ID</th>
+                <th class="py-3 px-4">Intercepted At</th>
+                <th class="py-3 px-4">Sender</th>
+                <th class="py-3 px-4">Subject</th>
+                <th class="py-3 px-4">Threat Score</th>
+                <th class="py-3 px-4">Verdict</th>
+                <th class="py-3 px-4">Action</th>
+                <th class="py-3 px-4 text-right">Forensic Files</th>
+              </tr>
+            </thead>
+            <tbody id="archive-tbody" class="divide-y divide-cyber-700/60">
+              <tr>
+                <td colspan="8" class="py-8 text-center text-slate-500 font-mono">Loading archived email records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- TAB 3: ATTACK & POLICY SIMULATOR -->
     <div id="tab-simulator" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+
       <!-- Input Panel -->
       <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between">
@@ -538,7 +594,7 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
   <script>
     // Tab Switching
     function switchTab(tabId) {
-      ['stream', 'autopsy', 'quarantine', 'simulator', 'topology'].forEach(t => {
+      ['stream', 'autopsy', 'quarantine', 'archive', 'simulator', 'topology'].forEach(t => {
         const pane = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
         if (pane) pane.classList.add('hidden');
@@ -550,7 +606,9 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
       if (activeBtn) activeBtn.className = 'px-4 py-2.5 text-sm font-semibold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2';
 
       if (tabId === 'quarantine') loadQuarantineList();
+      if (tabId === 'archive') loadArchiveList();
     }
+
 
     let currentAutopsyDossier = null;
 
@@ -766,7 +824,68 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
       }
     }
 
+    // Load Continuous Intercepted Archive Records
+    async function loadArchiveList() {
+      const tbody = document.getElementById('archive-tbody');
+      try {
+        const res = await fetch('/api/v1/archive?limit=100');
+        if (res.ok) {
+          const data = await res.json();
+          const pathEl = document.getElementById('archive-vault-path');
+          if (pathEl) pathEl.innerText = data.archive_dir || 'Default';
+
+          const list = data.cases || [];
+          if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500 font-mono">Archive vault is empty. All processed incoming emails will automatically appear here.</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = list.map(c => {
+            let badgeColor = c.threat_score >= 75 ? 'bg-rose-950 text-rose-400 border-rose-800' :
+                             c.threat_score >= 40 ? 'bg-amber-950 text-amber-400 border-amber-800' :
+                             'bg-emerald-950 text-emerald-400 border-emerald-800';
+
+            return `
+              <tr class="hover:bg-cyber-700/40 transition">
+                <td class="py-3 px-4 font-mono text-cyan-400 font-bold cursor-pointer hover:underline" onclick="openAutopsy('${c.case_id}')">${c.case_id}</td>
+                <td class="py-3 px-4 text-slate-400">${new Date(c.timestamp).toLocaleString()}</td>
+                <td class="py-3 px-4 text-slate-200 font-medium">${escapeHtml(c.sender)}</td>
+                <td class="py-3 px-4 text-slate-300 truncate max-w-xs">${escapeHtml(c.subject || '(No Subject)')}</td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded font-mono font-bold border ${badgeColor}">${c.threat_score}%</span>
+                </td>
+                <td class="py-3 px-4 text-slate-300">${escapeHtml(c.verdict)}</td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded font-mono text-[11px] bg-cyber-700 text-slate-300">${c.policy_action}</span>
+                </td>
+                <td class="py-3 px-4 text-right space-x-1.5">
+                  <button onclick="openAutopsy('${c.case_id}')" title="Forensic Autopsy" class="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 rounded text-cyan-400 text-xs"><i class="fa-solid fa-microscope"></i></button>
+                  <a href="/api/v1/archive/${c.case_id}/summary" target="_blank" title="View Summary Report" class="inline-block px-2 py-1 bg-cyber-700 hover:bg-cyber-600 rounded text-amber-400 text-xs"><i class="fa-solid fa-file-lines"></i></a>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-400 font-mono">Failed to load archive: ${e}</td></tr>`;
+      }
+    }
+
+    async function triggerAnalystTestAlert() {
+      try {
+        const res = await fetch('/api/v1/analyst/test-alert', { method: 'POST' });
+        if (res.ok) {
+          const d = await res.json();
+          alert(`Test alert dispatched!\nDesktop: ${d.channel_dispatch_results.desktop ? 'Triggered' : 'N/A'}\nCase: ${d.case_id}`);
+        } else {
+          alert("Failed to trigger test alert.");
+        }
+      } catch (e) {
+        alert("Error triggering alert: " + e);
+      }
+    }
+
     async function viewBsaCert(caseId) {
+
       document.getElementById('bsa-modal').classList.remove('hidden');
       const box = document.getElementById('bsa-modal-content');
       box.innerText = "Loading cryptographic verification...";
