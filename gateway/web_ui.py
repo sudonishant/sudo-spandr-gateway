@@ -164,12 +164,16 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-vial-virus"></i> Attack &amp; Policy Simulator
       </button>
+      <button onclick="switchTab('gmail')" id="tab-btn-gmail" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
+        <i class="fa-brands fa-google text-red-400"></i> Real Gmail Live Sync
+      </button>
       <button onclick="switchTab('topology')" id="tab-btn-topology" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
         <i class="fa-solid fa-diagram-project"></i> Postfix &amp; Topology
       </button>
 
     </div>
   </div>
+
 
   <!-- Main Content Areas -->
   <main class="max-w-7xl mx-auto w-full px-6 flex-1 pb-10">
@@ -438,9 +442,14 @@ milter_mail_macros = i {auth_type} {auth_authen}</pre>
           <pre class="bg-cyber-900 border border-cyber-600 rounded-lg p-4 font-mono text-xs text-indigo-300 overflow-x-auto custom-scroll"># Inbound MX points to SUDO SPANDR ESG (Port 10025 or 25)
 # ESG inspects traffic -> relays clean/tagged mail to internal MTA:
 CS_GW_SMTP_LISTEN_PORT=10025
-CS_GW_SMTP_RELAY_HOST=127.0.0.1
+CS_GW_SMTP_RELAY_HOST=127.0.0.1</pre>
+        </div>
+      </div>
+    </div>
+
     <!-- TAB: FORENSIC AUTOPSY LAB -->
     <div id="tab-autopsy" class="hidden space-y-6">
+
       <!-- Search and Inspect Bar -->
       <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -587,9 +596,122 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
           </div>
         </div>
       </div>
+    <!-- TAB 5: REAL GMAIL / GOOGLE WORKSPACE LIVE SYNC -->
+    <div id="tab-gmail" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Connection Config Card -->
+        <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-6 shadow-xl space-y-5 lg:col-span-1">
+          <div class="flex items-center gap-3 border-b border-cyber-600 pb-3">
+            <div class="w-10 h-10 rounded-xl bg-red-950/80 border border-red-800 flex items-center justify-center text-red-400 text-xl">
+              <i class="fa-brands fa-google"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Connect Real Gmail Account</h3>
+              <p class="text-xs text-slate-400">Live IMAP TLS (:993) Mail Interception</p>
+            </div>
+          </div>
+
+          <div id="gmail-alert-box" class="hidden p-3 rounded-lg text-xs flex items-center gap-2"></div>
+
+          <div class="space-y-4 text-xs">
+            <div>
+              <label class="block font-medium text-slate-300 mb-1.5">Gmail / Google Email Address</label>
+              <input type="email" id="gmail-email-input" placeholder="yourname@gmail.com" class="w-full bg-cyber-900 border border-cyber-600 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-red-400 transition">
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+                <span>Google 16-Char App Password</span>
+                <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-cyan-400 hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i> Generate</a>
+              </label>
+              <input type="password" id="gmail-password-input" placeholder="xxxx xxxx xxxx xxxx" class="w-full bg-cyber-900 border border-cyber-600 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-red-400 transition">
+            </div>
+
+            <div class="p-3 bg-cyber-900/60 rounded-lg border border-cyber-700/60 text-[11px] text-slate-400 space-y-1">
+              <div class="text-amber-300 font-semibold flex items-center gap-1.5 mb-1">
+                <i class="fa-solid fa-circle-info"></i> Kaise Banayein App Password?
+              </div>
+              <div>1. Google Account me <b>2-Step Verification</b> ऑन करें।</div>
+              <div>2. <b>App Passwords</b> सर्च करें या ऊपर दिए गए लिंक पर जाएं।</div>
+              <div>3. App Name "SUDO SPANDR" लिखकर 16-अक्षरों का पासवर्ड कॉपी करके यहाँ पेस्ट करें।</div>
+            </div>
+
+            <div class="pt-2 flex flex-col gap-2">
+              <button onclick="connectGmailAccount()" id="btn-gmail-connect" class="w-full py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-red-500/20 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plug"></i> Connect &amp; Start Live Protection
+              </button>
+              <button onclick="disconnectGmailAccount()" id="btn-gmail-disconnect" class="hidden w-full py-2 bg-cyber-700 hover:bg-cyber-600 text-slate-300 font-semibold rounded-lg text-xs transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-power-off text-rose-400"></i> Disconnect Account
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Sync Status & Mail Stream Feed -->
+        <div class="bg-cyber-800 border border-cyber-600 rounded-xl p-6 shadow-xl space-y-5 lg:col-span-2 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-wrap items-center justify-between border-b border-cyber-600 pb-3 gap-3">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-satellite text-cyan-400"></i> Live Mail Stream from Gmail
+                </h3>
+                <p class="text-xs text-slate-400">Continuous background polling and autopsy analysis</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="scanGmailNow()" class="px-3 py-1.5 bg-cyber-700 hover:bg-cyber-600 text-xs font-semibold rounded-lg border border-cyber-600 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-arrows-rotate text-cyan-400"></i> Scan Latest Now
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 my-4">
+              <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-700">
+                <span class="text-[10px] text-slate-400 block font-mono">CONNECTION</span>
+                <span id="gmail-status-text" class="text-xs font-bold text-slate-400">DISCONNECTED</span>
+              </div>
+              <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-700">
+                <span class="text-[10px] text-slate-400 block font-mono">CONNECTED ACCOUNT</span>
+                <span id="gmail-active-email" class="text-xs font-mono text-cyan-400 truncate block">None</span>
+              </div>
+              <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-700">
+                <span class="text-[10px] text-slate-400 block font-mono">INSPECTED EMAILS</span>
+                <span id="gmail-inspected-count" class="text-xs font-bold text-emerald-400">0</span>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-cyber-900/80 text-slate-400 uppercase font-mono text-[11px] border-b border-cyber-600">
+                  <tr>
+                    <th class="py-2.5 px-3">Case ID</th>
+                    <th class="py-2.5 px-3">Subject</th>
+                    <th class="py-2.5 px-3">Score</th>
+                    <th class="py-2.5 px-3">Verdict</th>
+                    <th class="py-2.5 px-3">Action</th>
+                    <th class="py-2.5 px-3 text-right">Autopsy</th>
+                  </tr>
+                </thead>
+                <tbody id="gmail-inspected-tbody" class="divide-y divide-cyber-700/60 font-sans">
+                  <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-500 font-mono">
+                      No active Gmail connection. Connect above to start pulling and inspecting live messages.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-3 bg-cyber-900/70 rounded-lg border border-cyber-700/60 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Security: <b class="text-emerald-400">Zero Password Persistence</b> (Kept in active memory only)</span>
+            <span>Archive: <b class="text-cyan-400">Auto-saved to ./intercepted_vault</b></span>
+          </div>
+        </div>
+      </div>
     </div>
 
   </main>
+
 
   <!-- Section 63 BSA Modal -->
   <div id="bsa-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -678,7 +800,7 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
   <script>
     // Tab Switching
     function switchTab(tabId) {
-      ['stream', 'autopsy', 'quarantine', 'archive', 'simulator', 'topology'].forEach(t => {
+      ['stream', 'autopsy', 'quarantine', 'archive', 'simulator', 'gmail', 'topology'].forEach(t => {
         const pane = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
         if (pane) pane.classList.add('hidden');
@@ -691,7 +813,9 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
 
       if (tabId === 'quarantine') loadQuarantineList();
       if (tabId === 'archive') loadArchiveList();
+      if (tabId === 'gmail') refreshGmailStatus();
     }
+
 
 
     let currentAutopsyDossier = null;
@@ -1208,13 +1332,154 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
       }
     }
 
+    // --- Real Gmail Live Integration JS Handlers ---
+    async function refreshGmailStatus() {
+      try {
+        const res = await fetch('/api/v1/gmail/status');
+        if (res.ok) {
+          const d = await res.json();
+          const statusText = document.getElementById('gmail-status-text');
+          const emailText = document.getElementById('gmail-active-email');
+          const countText = document.getElementById('gmail-inspected-count');
+          const btnConnect = document.getElementById('btn-gmail-connect');
+          const btnDisconnect = document.getElementById('btn-gmail-disconnect');
+
+          if (d.is_active && d.connected_email) {
+            statusText.innerText = "ACTIVE INTERCEPTOR (TLS)";
+            statusText.className = "text-xs font-bold text-emerald-400";
+            emailText.innerText = d.connected_email;
+            countText.innerText = d.synced_count;
+            btnConnect.classList.add('hidden');
+            btnDisconnect.classList.remove('hidden');
+          } else {
+            statusText.innerText = "DISCONNECTED";
+            statusText.className = "text-xs font-bold text-slate-400";
+            emailText.innerText = "None";
+            btnConnect.classList.remove('hidden');
+            btnDisconnect.classList.add('hidden');
+          }
+        }
+      } catch (e) {
+        console.error("Gmail status refresh error:", e);
+      }
+    }
+
+    async function connectGmailAccount() {
+      const emailVal = document.getElementById('gmail-email-input').value.trim();
+      const pwdVal = document.getElementById('gmail-password-input').value.trim();
+      const alertBox = document.getElementById('gmail-alert-box');
+      const btn = document.getElementById('btn-gmail-connect');
+
+      if (!emailVal || !pwdVal) {
+        alert("Please enter both your Gmail email address and the 16-character App Password.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Authenticating with Google...`;
+      alertBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/v1/gmail/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailVal, app_password: pwdVal, auto_start_sync: true })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          alertBox.className = "p-3 rounded-lg text-xs flex items-center gap-2 bg-emerald-950/80 border border-emerald-800 text-emerald-300";
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> ${data.message}`;
+          alertBox.classList.remove('hidden');
+          await refreshGmailStatus();
+          if (data.recent_inspections && data.recent_inspections.length > 0) {
+            renderGmailRows(data.recent_inspections);
+          }
+          refreshData();
+        } else {
+          alertBox.className = "p-3 rounded-lg text-xs flex items-center gap-2 bg-rose-950/80 border border-rose-800 text-rose-300";
+          alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> ${data.detail || data.message || 'Connection failed'}`;
+          alertBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        alertBox.className = "p-3 rounded-lg text-xs flex items-center gap-2 bg-rose-950/80 border border-rose-800 text-rose-300";
+        alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Network error: ${err}`;
+        alertBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-plug"></i> Connect &amp; Start Live Protection`;
+      }
+    }
+
+    async function disconnectGmailAccount() {
+      if (!confirm("Are you sure you want to stop Gmail live sync?")) return;
+      try {
+        await fetch('/api/v1/gmail/disconnect', { method: 'POST' });
+        await refreshGmailStatus();
+        alert("Gmail account disconnected.");
+      } catch (e) {
+        alert("Disconnect error: " + e);
+      }
+    }
+
+    async function scanGmailNow() {
+      const tbody = document.getElementById('gmail-inspected-tbody');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-cyan-400 font-mono"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Fetching latest emails from Google IMAP...</td></tr>`;
+
+      try {
+        const res = await fetch('/api/v1/gmail/scan-now?max_messages=5', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          renderGmailRows(data.results);
+          await refreshGmailStatus();
+          refreshData();
+        } else {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-rose-400 font-mono">${data.detail || 'Failed to scan Gmail'}</td></tr>`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-rose-400 font-mono">Error: ${e}</td></tr>`;
+      }
+    }
+
+    function renderGmailRows(items) {
+      const tbody = document.getElementById('gmail-inspected-tbody');
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 font-mono">No new emails found in INBOX.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(m => {
+        let badgeColor = m.threat_score >= 75 ? 'bg-rose-950 text-rose-400 border-rose-800' :
+                         m.threat_score >= 40 ? 'bg-amber-950 text-amber-400 border-amber-800' :
+                         'bg-emerald-950 text-emerald-400 border-emerald-800';
+
+        return `
+          <tr class="hover:bg-cyber-700/40 transition">
+            <td class="py-2.5 px-3 font-mono text-cyan-400 font-semibold cursor-pointer hover:underline" onclick="openAutopsy('${m.case_id}')">${m.case_id}</td>
+            <td class="py-2.5 px-3 text-slate-200 truncate max-w-xs">${escapeHtml(m.subject || '(No Subject)')}</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded font-mono font-bold border ${badgeColor}">${m.threat_score}%</span></td>
+            <td class="py-2.5 px-3 text-slate-300 font-mono text-[11px]">${m.verdict}</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded font-mono text-[10px] bg-cyber-700 text-slate-300">${m.policy_action}</span></td>
+            <td class="py-2.5 px-3 text-right">
+              <button onclick="openAutopsy('${m.case_id}')" class="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 rounded text-cyan-400 text-xs font-semibold">
+                <i class="fa-solid fa-microscope mr-1"></i> Autopsy
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     // Initial Load
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
       refreshData();
       connectSSE();
+      refreshGmailStatus();
       setInterval(refreshData, 5000);
+      setInterval(refreshGmailStatus, 15000);
     });
+
 
   </script>
 </body>

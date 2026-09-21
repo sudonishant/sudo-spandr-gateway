@@ -31,8 +31,10 @@ from gateway.quarantine import vault
 from gateway.smtp_proxy import AsyncSMTPProxyServer, metrics
 from gateway.archiver import archiver
 from gateway.notifier import notifier
+from gateway.gmail_sync import gmail_service
 
 console = Console()
+
 
 
 
@@ -332,6 +334,70 @@ def cmd_test_alert(score: int = 88, category: str = "BEC / Executive Impersonati
     console.print(table)
 
 
+def cmd_gmail_test(email_addr: str, app_password: str):
+    """Tests Gmail connection using Google 16-character App Password."""
+    console.print(f"[bold cyan]🔍 TESTING GMAIL IMAP CONNECTION FOR:[/bold cyan] {email_addr}\n")
+    res = gmail_service.test_connection(email_addr, app_password)
+    if res.get("status") == "success":
+        console.print(Panel(
+            f"[bold green]✓ SUCCESS: Google IMAP Authentication Successful![/bold green]\n\n"
+            f"• Mailbox: [cyan]{email_addr}[/cyan]\n"
+            f"• Total Inbox Messages: [bold white]{res.get('total_inbox_messages')}[/bold white]\n"
+            f"• Connection Security: [green]TLS 1.3 / SSL Port 993 (Encrypted)[/green]",
+            title="GMAIL CONNECTION STATUS",
+            border_style="green"
+        ))
+    else:
+        console.print(Panel(
+            f"[bold red]✗ FAILED: {res.get('message')}[/bold red]\n\n"
+            f"[yellow]Remedy:[/yellow] Ensure 2-Step Verification is active on Google Account and generate an App Password at https://myaccount.google.com/apppasswords",
+            title="GMAIL AUTHENTICATION FAILED",
+            border_style="red"
+        ))
+
+
+def cmd_gmail_sync(email_addr: str, app_password: str, max_msgs: int = 5):
+    """Pulls and executes surgical forensic autopsy on real Gmail inbox messages."""
+    console.print(f"[bold cyan]📥 PULLING & INSPECTING RECENT MESSAGES FROM GMAIL:[/bold cyan] {email_addr}\n")
+    try:
+        items = gmail_service.fetch_and_inspect_recent(
+            email_address=email_addr,
+            app_password=app_password,
+            max_messages=max_msgs,
+            unread_only=False
+        )
+        if not items:
+            console.print("[yellow]No recent emails found in INBOX to inspect.[/yellow]")
+            return
+
+        table = Table(title="REAL GMAIL FORENSIC INSPECTION RESULTS", show_header=True, header_style="bold cyan")
+        table.add_column("Case ID", style="bold white")
+        table.add_column("Gmail UID", style="dim")
+        table.add_column("Subject", style="cyan")
+        table.add_column("Threat Score", justify="center")
+        table.add_column("Verdict", justify="center")
+        table.add_column("Policy Action", justify="center")
+        table.add_column("Scan Time", justify="right", style="dim")
+
+        for m in items:
+            score = m.get("threat_score", 0)
+            score_color = "bold red" if score >= 75 else ("bold yellow" if score >= 40 else "bold green")
+            table.add_row(
+                m.get("case_id"),
+                m.get("gmail_uid"),
+                m.get("subject", "(No Subject)")[:35],
+                f"[{score_color}]{score}%[/{score_color}]",
+                m.get("verdict"),
+                m.get("policy_action"),
+                f"{m.get('scan_time_ms')}ms"
+            )
+        console.print(table)
+        console.print(f"\n[green]✓ All inspected emails automatically archived with Section 63 BSA legal reports into `./intercepted_vault`.[/green]")
+    except Exception as e:
+        console.print(f"[bold red]✗ Gmail pull error: {e}[/bold red]")
+
+
+
 
 def cmd_autopsy(case_id_or_file: str):
     """Generates and prints a surgical terminal autopsy report for a case or raw EML."""
@@ -488,6 +554,17 @@ def main():
     test_alert_parser = subparsers.add_parser("test-alert", help="Send test high-threat alert to all configured analyst channels")
     test_alert_parser.add_argument("--score", type=int, default=88, help="Simulated threat score (default: 88)")
 
+    # gmail-test
+    gmail_test_parser = subparsers.add_parser("gmail-test", help="Test live IMAP connection to real Gmail account")
+    gmail_test_parser.add_argument("email", help="Gmail address (e.g. user@gmail.com)")
+    gmail_test_parser.add_argument("app_password", help="16-character Google App Password")
+
+    # gmail-sync
+    gmail_sync_parser = subparsers.add_parser("gmail-sync", help="Pull and autopsy real Gmail inbox messages")
+    gmail_sync_parser.add_argument("email", help="Gmail address (e.g. user@gmail.com)")
+    gmail_sync_parser.add_argument("app_password", help="16-character Google App Password")
+    gmail_sync_parser.add_argument("--count", type=int, default=5, help="Number of latest emails to pull (default: 5)")
+
     args = parser.parse_args()
 
     if args.command == "start":
@@ -506,9 +583,14 @@ def main():
         cmd_archive_view(args.case_id)
     elif args.command == "test-alert":
         cmd_test_alert(args.score)
+    elif args.command == "gmail-test":
+        cmd_gmail_test(args.email, args.app_password)
+    elif args.command == "gmail-sync":
+        cmd_gmail_sync(args.email, args.app_password, args.count)
     else:
         # Default: print simulation
         cmd_simulate()
+
 
 
 if __name__ == "__main__":

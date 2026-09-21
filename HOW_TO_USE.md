@@ -125,11 +125,17 @@ Security ke liye Web Dashboard me Role-Based Access Control (RBAC) authenticatio
      - ✅ *Clean Business Meeting*
    - Preset button par click karein aur **"EXECUTE ESG INTERCEPTION SIMULATION"** dabayein. Output me live threat breakdown, score, aur injected forensic headers dikhenge.
 
-6. **Tab 4: Postfix & Topology Guide**
+6. **Tab 4: Real Gmail Live Sync (Google Account Connect)**
+   - **Real Google Account Connection:** Gmail IMAP TLS (`imap.gmail.com:993`) ke through directly real account connect karein.
+   - **Google 16-character App Password:** Apne Google Account me 2-Step Verification on karke generate karein: https://myaccount.google.com/apppasswords
+   - **Real-Time Automated Autopsy:** Google INBOX me aane wale naye emails ko automatically pull karke dissect karta hai, threat score nikalta hai, `./intercepted_vault` me archive karta hai, aur high-threat par instant desktop/telegram alert bhejta hai.
+   - **On-Demand Scan Button:** `Scan Latest Now` button click karke INBOX ke taaza emails ko turant check karein.
 
+7. **Tab 5: Postfix & Topology Guide**
    - Production Postfix server ke configuration snippets copy karne ke liye reference.
 
 ---
+
 
 ## 4. Testing Attack Scenarios (Simulation)
 

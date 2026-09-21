@@ -369,9 +369,34 @@ class TestSudoSpandrESG(unittest.TestCase):
         logout_res = self.client.post("/api/v1/auth/logout")
         self.assertEqual(logout_res.status_code, 200)
 
+    def test_13_gmail_integration(self):
+        """Test Real Gmail IMAP status, test failure handling, and endpoints."""
+        # 1. Status endpoint check
+        st_res = self.client.get("/api/v1/gmail/status")
+        self.assertEqual(st_res.status_code, 200)
+        st_data = st_res.json()
+        self.assertIn("is_active", st_data)
+        self.assertFalse(st_data["is_active"])
+
+        # 2. Test Invalid Gmail credential rejection
+        bad_req = {
+            "email": "invalid_test_acc@gmail.com",
+            "app_password": "fakefakefakefake",
+            "auto_start_sync": False
+        }
+        test_res = self.client.post("/api/v1/gmail/test", json=bad_req)
+        # Should return 400 Bad Request with informative error
+        self.assertEqual(test_res.status_code, 400)
+        self.assertIn("detail", test_res.json())
+
+        # 3. Disconnect endpoint
+        disc_res = self.client.post("/api/v1/gmail/disconnect")
+        self.assertEqual(disc_res.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 

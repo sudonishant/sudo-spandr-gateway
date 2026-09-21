@@ -25,7 +25,9 @@ from gateway.auth import (
     get_current_user_from_request,
     verify_session_token
 )
+from gateway.gmail_sync import gmail_service
 from gateway.web_ui import DASHBOARD_HTML
+
 
 
 
@@ -538,5 +540,66 @@ async def api_get_current_user(request: Request):
             "name": display_name
         }
     }
+
+
+# --- REAL GMAIL / GOOGLE WORKSPACE LIVE INTEGRATION APIS ---
+
+class GmailConnectRequest(BaseModel):
+    email: str = Field(description="Google / Gmail Email Address (e.g. user@gmail.com)")
+    app_password: str = Field(description="16-character Google App Password (e.g. abcd efgh ijkl mnop)")
+    auto_start_sync: bool = Field(default=True, description="Immediately start continuous background scanning")
+
+
+@app.post("/api/v1/gmail/test")
+async def test_gmail_credentials(req: GmailConnectRequest):
+    """Tests IMAP authentication against Google servers."""
+    res = gmail_service.test_connection(req.email, req.app_password)
+    if res.get("status") != "success":
+        raise HTTPException(status_code=400, detail=res.get("message"))
+    return res
+
+
+@app.post("/api/v1/gmail/connect")
+async def connect_and_start_gmail(req: GmailConnectRequest):
+    """Connects to real Gmail account and starts continuous live email inspection."""
+    res = gmail_service.start_live_sync(req.email, req.app_password)
+    if res.get("status") != "success":
+        raise HTTPException(status_code=400, detail=res.get("message"))
+    return res
+
+
+@app.post("/api/v1/gmail/disconnect")
+async def disconnect_gmail():
+    """Disconnects and stops live Gmail background sync."""
+    return gmail_service.stop_live_sync()
+
+
+@app.get("/api/v1/gmail/status")
+async def get_gmail_status():
+    """Retrieves live Gmail monitoring health and stats."""
+    return gmail_service.get_status()
+
+
+@app.post("/api/v1/gmail/scan-now")
+async def scan_gmail_now(max_messages: int = 5):
+    """Triggers an on-demand pull & forensic inspection of latest Gmail messages."""
+    if not gmail_service.is_running or not gmail_service.current_email:
+        raise HTTPException(status_code=400, detail="No active Gmail account connected. Please connect first.")
+
+    try:
+        results = gmail_service.fetch_and_inspect_recent(
+            email_address=gmail_service.current_email,
+            app_password=gmail_service.current_app_password,
+            max_messages=max_messages,
+            unread_only=False
+        )
+        return {
+            "status": "success",
+            "inspected_count": len(results),
+            "results": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Manual scan error: {e}")
+
 
 

@@ -93,7 +93,15 @@ class GatewaySettings(BaseSettings):
     AUTH_SECRET_KEY: str = "sudo-spandr-enterprise-soc-auth-token-2026-sih"
     SESSION_EXPIRE_HOURS: int = 24
 
+    # Real Gmail / Google Workspace Live IMAP Sync & Interceptor
+    GMAIL_IMAP_SERVER: str = "imap.gmail.com"
+    GMAIL_IMAP_PORT: int = 993
+    GMAIL_DEFAULT_EMAIL: Optional[str] = None
+    GMAIL_APP_PASSWORD: Optional[str] = None
+    GMAIL_POLL_INTERVAL_SECONDS: int = 15
+
 
 settings = GatewaySettings()
+
 
 
