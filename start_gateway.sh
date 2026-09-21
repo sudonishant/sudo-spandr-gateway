@@ -37,8 +37,11 @@ echo "    • SMTP Transparent Proxy : 0.0.0.0:10025"
 echo "    • Postfix Milter Socket  : 0.0.0.0:8893"
 echo "    • Web SOC Dashboard      : http://localhost:8002"
 echo "    • Prometheus Metrics     : http://localhost:8002/metrics"
+echo "    • Intercepted Vault      : ./intercepted_vault (All Emails Saved with Full Autopsy)"
+echo "    • SOC Analyst Alerts     : Auto (Desktop, Telegram, Webhook, Email on Threat >= 70%)"
 echo ""
 echo "Press Ctrl+C to stop the gateway."
 echo "======================================================================"
+
 
 python3 cli.py start --host 0.0.0.0 --smtp-port 10025 --milter-port 8893 --api-port 8002

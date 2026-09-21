@@ -75,12 +75,14 @@ async def run_unified_gateway(host: str, smtp_port: int, milter_port: int, api_p
 
     console.print(Panel(
         f"[bold green]✓ ALL GATEWAY SINK INTERCEPTORS ONLINE[/bold green]\n\n"
-        f"• [bold cyan]SMTP Transparent Proxy:[/bold cyan]  [white]{host}:{smtp_port}[/white]\n"
-        f"• [bold yellow]Postfix Milter Wire Socket:[/bold yellow] [white]{host}:{milter_port}[/white]\n"
+        f"• [bold cyan]SMTP Transparent Proxy:[/bold cyan]    [white]{host}:{smtp_port}[/white]\n"
+        f"• [bold yellow]Postfix Milter Wire Socket:[/bold yellow]   [white]{host}:{milter_port}[/white]\n"
         f"• [bold magenta]FastAPI & Web SOC Dashboard:[/bold magenta] [white]http://{host if host != '0.0.0.0' else 'localhost'}:{api_port}[/white]\n"
-        f"• [bold blue]Prometheus Metrics Endpoint:[/bold blue]  [white]http://{host if host != '0.0.0.0' else 'localhost'}:{api_port}/metrics[/white]\n"
-        f"• [bold purple]Quarantine Storage Vault:[/bold purple]    [white]{settings.QUARANTINE_DIR}[/white]",
-        title="[bold white]SUDO SPANDR ESG CONTROL PLANE[/bold white]",
+        f"• [bold blue]Prometheus Metrics Endpoint:[/bold blue]    [white]http://{host if host != '0.0.0.0' else 'localhost'}:{api_port}/metrics[/white]\n"
+        f"• [bold purple]Quarantine Storage Vault:[/bold purple]      [white]{settings.QUARANTINE_DIR}[/white]\n"
+        f"• [bold green]Intercepted Vault (All Mail):[/bold green] [white]{settings.ARCHIVE_DIR}[/white]\n"
+        f"• [bold red]SOC Analyst Alerting:[/bold red]         [white]Active (Min Threat Score: {settings.ALERT_ANALYST_MIN_SCORE}%)[/white]",
+        title="[bold white]SUDO SPANDR ESG CONTROL PLANE (PRODUCTION READY)[/bold white]",
         border_style="cyan"
     ))
 

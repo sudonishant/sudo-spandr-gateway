@@ -74,11 +74,15 @@ Open in your browser: 👉 **`http://localhost:8002`**
 |---|---|
 | **Start Gateway** | `python3 cli.py start` (or `./start_gateway.sh`) |
 | **Run Attack Simulation** | `python3 cli.py simulate` |
+| **List Intercepted Archive** | `python3 cli.py archive-list` |
+| **View Case Autopsy & Summary** | `python3 cli.py archive-view <case_id>` |
+| **Test SOC Analyst Alerts** | `python3 cli.py test-alert --score 88` |
 | **Send Test SMTP Email** | `python3 cli.py test-smtp --sender attacker@b0b-security-update.in --subject "URGENT: Wire Transfer"` |
 | **List Quarantined Cases** | `python3 cli.py quarantine-list` |
 | **Inject Synthetic Traffic** | `python3 simulate_traffic.py --count 2 --delay 0.5` |
-| **Run Automated Tests** | `python3 test_gateway_suite.py` |
+| **Run Automated Tests** | `python3 -m unittest test_gateway_suite.py` |
 | **Start Milter Daemon Only** | `python3 milter_daemon.py --serve --port 8893` |
+
 
 ---
 

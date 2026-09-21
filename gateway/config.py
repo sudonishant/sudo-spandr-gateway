@@ -84,6 +84,16 @@ class GatewaySettings(BaseSettings):
     SMTP_ALERT_PORT: int = 25
     SMTP_ALERT_FROM: str = "alerts@sudo-spandr-esg.local"
 
+    # Enterprise SOC Dashboard Authentication & Security
+    AUTH_REQUIRED: bool = True
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = "spandr2026"
+    ANALYST_USERNAME: str = "analyst"
+    ANALYST_PASSWORD: str = "socsecure"
+    AUTH_SECRET_KEY: str = "sudo-spandr-enterprise-soc-auth-token-2026-sih"
+    SESSION_EXPIRE_HOURS: int = 24
+
 
 settings = GatewaySettings()
+
 

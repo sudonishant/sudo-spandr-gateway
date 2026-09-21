@@ -335,8 +335,43 @@ class TestSudoSpandrESG(unittest.TestCase):
         self.assertIn("channel_dispatch_results", alert_data)
         self.assertIn("desktop", alert_data["channel_dispatch_results"])
 
+    def test_12_auth_endpoints(self):
+        """Test SOC Login, Session Cookie validation, and Logout endpoints."""
+        # 1. Test unauthenticated check
+        me_res = self.client.get("/api/v1/auth/me")
+        self.assertEqual(me_res.status_code, 200)
+        self.assertFalse(me_res.json()["is_authenticated"])
+
+        # 2. Test Invalid Login
+        fail_res = self.client.post("/api/v1/auth/login", json={"username": "admin", "password": "wrongpassword"})
+        self.assertEqual(fail_res.status_code, 401)
+
+        # 3. Test Admin Login
+        login_res = self.client.post("/api/v1/auth/login", json={"username": "admin", "password": "spandr2026"})
+        self.assertEqual(login_res.status_code, 200)
+        login_data = login_res.json()
+        self.assertEqual(login_data["status"], "success")
+        self.assertEqual(login_data["user"]["role"], "ADMIN")
+        self.assertIn("spandr_session", login_res.cookies)
+
+        # 4. Test Authenticated check with cookie
+        auth_me_res = self.client.get("/api/v1/auth/me", cookies=login_res.cookies)
+        self.assertEqual(auth_me_res.status_code, 200)
+        self.assertTrue(auth_me_res.json()["is_authenticated"])
+        self.assertEqual(auth_me_res.json()["user"]["username"], "admin")
+
+        # 5. Test Analyst Login
+        analyst_login = self.client.post("/api/v1/auth/login", json={"username": "analyst", "password": "socsecure"})
+        self.assertEqual(analyst_login.status_code, 200)
+        self.assertEqual(analyst_login.json()["user"]["role"], "ANALYST")
+
+        # 6. Test Logout
+        logout_res = self.client.post("/api/v1/auth/logout")
+        self.assertEqual(logout_res.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

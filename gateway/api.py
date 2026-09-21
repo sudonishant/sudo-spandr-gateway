@@ -19,7 +19,14 @@ from gateway.quarantine import vault
 from gateway.smtp_proxy import metrics
 from gateway.archiver import archiver
 from gateway.notifier import notifier
+from gateway.auth import (
+    authenticate_user,
+    generate_session_token,
+    get_current_user_from_request,
+    verify_session_token
+)
 from gateway.web_ui import DASHBOARD_HTML
+
 
 
 app = FastAPI(
@@ -464,4 +471,72 @@ async def trigger_test_analyst_alert(req: Optional[AlertTestRequest] = None):
             "email_configured": bool(settings.ANALYST_EMAIL)
         }
     }
+
+
+# --- SOC AUTHENTICATION & ACCESS CONTROL APIS ---
+
+class LoginRequest(BaseModel):
+    username: str = Field(description="SOC Username (admin or analyst)")
+    password: str = Field(description="SOC Account Password")
+
+
+@app.post("/api/v1/auth/login")
+async def api_login(req: LoginRequest, response: Response):
+    """Authenticates SOC user and sets secure HTTP-only session cookie."""
+    user = authenticate_user(req.username, req.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials. Use 'admin' / 'spandr2026' or 'analyst' / 'socsecure'."
+        )
+
+    token = generate_session_token(user["username"], user["role"])
+    
+    # Set session cookie (24h validity)
+    response.set_cookie(
+        key="spandr_session",
+        value=token,
+        max_age=settings.SESSION_EXPIRE_HOURS * 3600,
+        httponly=False,  # Allow frontend read for auth state
+        samesite="lax",
+        secure=False
+    )
+
+    return {
+        "status": "success",
+        "message": f"Welcome back, {user['name']}",
+        "token": token,
+        "user": user
+    }
+
+
+@app.post("/api/v1/auth/logout")
+async def api_logout(response: Response):
+    """Clears SOC session cookie."""
+    response.delete_cookie(key="spandr_session")
+    return {"status": "success", "message": "Logged out successfully from SUDO SPANDR ESG."}
+
+
+@app.get("/api/v1/auth/me")
+async def api_get_current_user(request: Request):
+    """Checks current session validity and returns authenticated user profile."""
+    user = get_current_user_from_request(request)
+    if not user:
+        return {
+            "is_authenticated": False,
+            "auth_required": settings.AUTH_REQUIRED,
+            "user": None
+        }
+
+    display_name = "SOC Lead Administrator" if user["role"] == "ADMIN" else "Tier-2 SOC Security Analyst"
+    return {
+        "is_authenticated": True,
+        "auth_required": settings.AUTH_REQUIRED,
+        "user": {
+            "username": user["username"],
+            "role": user["role"],
+            "name": display_name
+        }
+    }
+
 

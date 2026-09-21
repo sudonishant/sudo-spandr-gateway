@@ -77,7 +77,20 @@ Jab gateway start hoga, aapko terminal par green status confirmation dikhega:
 Gateway start karne ke baad apne browser me open karein:
 👉 **`http://localhost:8002`**
 
+### 🔐 SOC Dashboard Login Credentials (Access Control):
+Security ke liye Web Dashboard me Role-Based Access Control (RBAC) authentication system integrated hai:
+
+| Role | Username | Default Password | Permissions |
+|---|---|---|---|
+| **SOC Lead Administrator** | `admin` | `spandr2026` | Full Control: Release Quarantine, Settings, Policy Rules, Simulation |
+| **Tier-2 SOC Security Analyst** | `analyst` | `socsecure` | Triage & Monitor: Live Inbound Feed, Autopsy Diagnostics, Archive Viewer |
+
+*Dashboard ke top header me **"SOC Login"** button par click karke sign in karein. Login hote hi role badge aur Logout button active ho jayega.*
+
+---
+
 ### Dashboard Features & Tabs:
+
 
 1. **Top Metrics Counters:**
    - **Total Scanned:** Total kitne emails inspect hue.
@@ -97,7 +110,13 @@ Gateway start karne ke baad apne browser me open karein:
    - **Raw EML Download:** `Download` icon se original intercepted `.eml` file download karein.
    - **Release to Mailbox:** `Paper Plane` icon click karke email ko recipient ke mailbox me release karein.
 
-4. **Tab 3: Attack & Policy Simulator**
+4. **Tab 2.5: Intercepted Mail Archive (Continuous Inbound Logger)**
+   - **All Emails Saved:** Gateway par aane wala **har ek mail** yahan timestamp ke saath save hota hai (`./intercepted_vault/<Date>/<Case_ID>/`).
+   - **3 Files per Email:** Raw `.eml`, machine-readable `_report.json`, aur human-readable `_summary.txt`.
+   - **Test Analyst Alert Button:** Screen se turant multi-channel alert (Desktop, Telegram, Slack, Email) test karein.
+   - **Forensic Autopsy & Summary Icons:** Ek click me summary text aur complete forensic dossier open karein.
+
+5. **Tab 3: Attack & Policy Simulator**
    - Alag-alag email attacks simulate karke gateway ka verdict test karein:
      - 💼 *CEO Wire Transfer ($25.6M)*
      - 🏦 *Bank of Baroda Phishing Spoof*
@@ -106,7 +125,8 @@ Gateway start karne ke baad apne browser me open karein:
      - ✅ *Clean Business Meeting*
    - Preset button par click karein aur **"EXECUTE ESG INTERCEPTION SIMULATION"** dabayein. Output me live threat breakdown, score, aur injected forensic headers dikhenge.
 
-5. **Tab 4: Postfix & Topology Guide**
+6. **Tab 4: Postfix & Topology Guide**
+
    - Production Postfix server ke configuration snippets copy karne ke liye reference.
 
 ---

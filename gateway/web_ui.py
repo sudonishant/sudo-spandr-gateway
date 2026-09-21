@@ -68,8 +68,26 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <button onclick="refreshData()" class="px-3 py-1.5 bg-cyber-700 hover:bg-cyber-600 text-xs font-semibold rounded-lg border border-cyber-600 transition flex items-center gap-1.5">
         <i class="fa-solid fa-rotate text-cyan-400"></i> Refresh
       </button>
+      
+      <!-- User Auth Section -->
+      <div id="auth-header-container" class="flex items-center gap-2">
+        <div id="auth-logged-in" class="hidden flex items-center gap-2">
+          <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-800 text-cyan-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-shield text-cyan-400"></i> <span id="auth-user-badge">Admin</span>
+          </span>
+          <button onclick="doLogout()" class="px-2.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-lg text-xs font-semibold transition" title="Logout">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+          </button>
+        </div>
+        <div id="auth-logged-out" class="flex items-center">
+          <button onclick="openLoginModal()" class="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-black text-xs font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-key"></i> SOC Login
+          </button>
+        </div>
+      </div>
     </div>
   </header>
+
 
   <!-- Metrics Counter Strip -->
   <section class="p-6 max-w-7xl mx-auto w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
@@ -591,6 +609,72 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
     </div>
   </div>
 
+  <!-- Enterprise SOC Login Modal -->
+  <div id="login-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cyber-800 border border-cyan-500/40 rounded-2xl max-w-md w-full p-7 shadow-2xl shadow-cyan-500/10 space-y-5">
+      <div class="flex items-center justify-between border-b border-cyber-600 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center">
+            <i class="fa-solid fa-fingerprint text-black text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">SOC Security Authentication</h3>
+            <p class="text-xs text-slate-400">Access Control &amp; Threat Enforcement</p>
+          </div>
+        </div>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="login-error-box" class="hidden p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+        <span id="login-error-msg">Invalid credentials.</span>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>Username / Role</span>
+            <span class="text-[10px] text-slate-500 font-mono">admin or analyst</span>
+          </label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+            <input type="text" id="login-username" required placeholder="admin" autocomplete="username" class="w-full bg-cyber-900 border border-cyber-600 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>Password</span>
+            <span class="text-[10px] text-slate-500 font-mono">Default: spandr2026</span>
+          </label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+            <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" class="w-full bg-cyber-900 border border-cyber-600 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition font-mono">
+          </div>
+        </div>
+
+        <div class="p-3 bg-cyber-900/60 rounded-lg border border-cyber-700/60 text-[11px] text-slate-400 space-y-1">
+          <div class="flex items-center justify-between">
+            <span>👑 <b>Administrator:</b> <code class="text-cyan-400">admin</code></span>
+            <span>Password: <code class="text-slate-300">spandr2026</code></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>🔍 <b>Security Analyst:</b> <code class="text-amber-400">analyst</code></span>
+            <span>Password: <code class="text-slate-300">socsecure</code></span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="closeLoginModal()" class="w-1/2 py-2.5 bg-cyber-700 hover:bg-cyber-600 text-slate-300 font-semibold rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" id="login-btn-submit" class="w-1/2 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold rounded-lg text-xs shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-unlock-keyhole"></i> Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
   <script>
     // Tab Switching
     function switchTab(tabId) {
@@ -1038,12 +1122,100 @@ CS_GW_SMTP_RELAY_HOST=127.0.0.1
       } catch (err) {}
     }
 
+    // --- Authentication & Session Management ---
+    let currentUser = null;
+
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/v1/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          const loggedInBox = document.getElementById('auth-logged-in');
+          const loggedOutBox = document.getElementById('auth-logged-out');
+          const badge = document.getElementById('auth-user-badge');
+
+          if (data.is_authenticated && data.user) {
+            currentUser = data.user;
+            badge.innerText = `${data.user.role}: ${data.user.username}`;
+            loggedInBox.classList.remove('hidden');
+            loggedOutBox.classList.add('hidden');
+          } else {
+            currentUser = null;
+            loggedInBox.classList.add('hidden');
+            loggedOutBox.classList.remove('hidden');
+          }
+        }
+      } catch (e) {
+        console.error("Auth check failed:", e);
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('login-modal').classList.remove('hidden');
+      document.getElementById('login-error-box').classList.add('hidden');
+      document.getElementById('login-username').focus();
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.add('hidden');
+      document.getElementById('login-error-box').classList.add('hidden');
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('login-btn-submit');
+      const errBox = document.getElementById('login-error-box');
+      const errMsg = document.getElementById('login-error-msg');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verifying...`;
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          closeLoginModal();
+          await checkAuthStatus();
+          alert(`✓ Authenticated as ${data.user.name} (${data.user.role})`);
+        } else {
+          errMsg.innerText = data.detail || 'Authentication failed. Please check credentials.';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errMsg.innerText = 'Network error contacting auth service: ' + err;
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-unlock-keyhole"></i> Sign In`;
+      }
+    }
+
+    async function doLogout() {
+      if (!confirm("Are you sure you want to sign out of the SOC Dashboard?")) return;
+      try {
+        await fetch('/api/v1/auth/logout', { method: 'POST' });
+        await checkAuthStatus();
+      } catch (e) {
+        console.error("Logout error:", e);
+      }
+    }
+
     // Initial Load
     window.addEventListener('DOMContentLoaded', () => {
+      checkAuthStatus();
       refreshData();
       connectSSE();
       setInterval(refreshData, 5000);
     });
+
   </script>
 </body>
 </html>
